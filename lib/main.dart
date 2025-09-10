@@ -22,8 +22,8 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MapLauncherExample(),
-      //home:SetRoutePage(),
+      //home: MapLauncherExample(),
+      home:SetRoutePage(),
     );
   }
 }

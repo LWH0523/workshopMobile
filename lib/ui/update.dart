@@ -1,7 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class SetRoutePage extends StatelessWidget {
+import '../database/updateDB.dart';
+
+class SetRoutePage extends StatefulWidget {
   const SetRoutePage({super.key});
+
+  @override
+  State<SetRoutePage> createState() => _SetRoutePageState();
+}
+
+class _SetRoutePageState extends State<SetRoutePage> {
+  final updateService = UpdateService();
+
+  String formatDateTime(String? date, String? time) {
+    if (date == null || time == null) return '';
+    try {
+      // 把 "2025-09-09" + "14:00:00" 合起來
+      final DateTime dt = DateTime.parse("$date $time");
+      return DateFormat("dd-MM-yyyy h:mm a").format(dt);
+    } catch (e) {
+      return "$date $time";
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -62,79 +84,114 @@ class SetRoutePage extends StatelessWidget {
           ),
 
           // card area
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
+          FutureBuilder(
+            future: updateService.getTaskDeliverDetails(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (!snapshot.hasData || snapshot.data == null) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: Text("No data found")),
+                );
+              }
+
+              final tasks = snapshot.data!;
+              final task = tasks.isNotEmpty ? tasks.first : null;
+
+              if (task == null) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: Text("No task available")),
+                );
+              }
+
+              final formattedDateTime = formatDateTime(
+                task['duedate'] as String?,
+                task['time'] as String?,
+              );
+
+
+              return Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header Row
-                    Row(
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2D4CC8),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            "A0004",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
+                        // Header Row
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2D4CC8),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                task['id'] ?? '',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const Spacer(),
+                            const Icon(Icons.more_vert, color: Colors.black54),
+                          ],
                         ),
-                        const Spacer(),
-                        const Icon(Icons.more_vert, color: Colors.black54),
+                        const SizedBox(height: 12),
+
+                        Text(
+                          task['workshop'] ?? '',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on,
+                                color: Colors.black54, size: 18),
+                            const SizedBox(width: 6),
+                            Text(task['destination'] ?? ''),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today,
+                                color: Colors.black54, size: 18),
+                            const SizedBox(width: 6),
+                            Text(formattedDateTime),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+
+                        Row(
+                          children: [
+                            const Icon(Icons.build,
+                                color: Colors.black54, size: 18),
+                            const SizedBox(width: 6),
+                            Text(task['component_name'] ?? ''),
+                          ],
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-
-                    const Text(
-                      "Workshop Bay 4",
-                      style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-
-                    Row(
-                      children: const [
-                        Icon(Icons.location_on,
-                            color: Colors.black54, size: 18),
-                        SizedBox(width: 6),
-                        Text("Taman Indah Perdana"),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-
-                    Row(
-                      children: const [
-                        Icon(Icons.calendar_today,
-                            color: Colors.black54, size: 18),
-                        SizedBox(width: 6),
-                        Text("22-07-2025 5:00 PM"),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-
-                    Row(
-                      children: const [
-                        Icon(Icons.build, color: Colors.black54, size: 18),
-                        SizedBox(width: 6),
-                        Text("Brake Pad"),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
 
           const Spacer(),
