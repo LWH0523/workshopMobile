@@ -8,4 +8,9 @@ class UpdateController {
   Future<List<Map<String, dynamic>>?> fetchTaskDeliverDetails() async {
     return await updateService.getTaskDeliverDetails();
   }
+
+  Future<bool> updateStatus(String taskId, String status) async {
+    return await updateService.updateTaskStatus(taskId, status);
+  }
+
 }

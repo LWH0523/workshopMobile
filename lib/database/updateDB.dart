@@ -6,12 +6,12 @@ class UpdateService {
   final SupabaseClient _client = Supabase.instance.client;
 
   Future<List<Map<String, dynamic>>?> getTaskDeliverDetails() async {
-  try {
+    try {
   final response = await _client
       .from('taskDeliver')
       .select('id, component_id, user_id, quantity, destination, dueDate, time, component(name, workshop)');
 
-  // 轉換成 List<Map>
+  // change List<Map>
   final List<Map<String, dynamic>> data =
   (response as List).map((item) => {
     'id': item['id']?.toString(),   // 轉字串
@@ -26,9 +26,24 @@ class UpdateService {
   }).toList();
 
   return data;
-  } catch (e) {
-  print('Error fetching taskDeliver details: $e');
-  return null;
+
+    } catch (e) {
+    print('Error fetching taskDeliver details: $e');
+    return null;
+    }
   }
+
+  Future<bool> updateTaskStatus(String taskId, String status) async {
+    try {
+      await _client
+          .from('taskDeliver')
+          .update({'status': status})
+          .eq('id', taskId);
+
+      return true;
+    } catch (e) {
+      print("Error updating task status: $e");
+      return false;
+    }
   }
-  }
+}
