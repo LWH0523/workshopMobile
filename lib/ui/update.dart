@@ -4,7 +4,7 @@ import '../controller/updateController.dart';
 import '../database/updateDB.dart';
 
 class SetRoutePage extends StatefulWidget {
-  const SetRoutePage({super.key});
+  const SetRoutePage({super.key, required String userId});
 
   @override
   State<SetRoutePage> createState() => _SetRoutePageState();
