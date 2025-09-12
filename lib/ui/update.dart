@@ -5,7 +5,7 @@ import '../database/updateDB.dart';
 import 'confirmation.dart';
 
 class SetRoutePage extends StatefulWidget {
-  final String userId; // 新增 userId 參數
+  final String userId; // add userID parameter
   const SetRoutePage({super.key, required this.userId});
 
   @override
@@ -16,7 +16,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
   final updateController = UpdateController(UpdateService());
   List<Map<String, dynamic>> tasks = [];
 
-  String status = "pending"; // button 全部共用狀態
+  String status = "pending"; // button all share status
   String buttonText = "Picked Up";
 
   String formatDateTime(String? date, String? time) {
@@ -36,7 +36,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
     } else if (newStatus == "picked up") {
       buttonText = "Enroute";
     } else if (newStatus == "enroute") {
-      buttonText = "Enroute"; // 到 enroute 後按鈕仍顯示 Enroute
+      buttonText = "Enroute"; // until enroute the button still show Enroute
     }
   }
 
@@ -51,7 +51,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
     if (data != null && data.isNotEmpty) {
       setState(() {
         tasks = data;
-        status = tasks.first['status'] ?? "pending"; // 取第一筆狀態作為初始
+        status = tasks.first['status'] ?? "pending"; // take the status as pending
         updateButtonText(status);
       });
     }
@@ -111,7 +111,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF2D4CC8),
         elevation: 0,
-        title: const Text("Set Route"),
+        title: const Text("Set Route", style: TextStyle(color: Colors.white)),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
