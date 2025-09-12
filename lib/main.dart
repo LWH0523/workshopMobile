@@ -23,7 +23,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       //home: MapLauncherExample(),
-      home:SetRoutePage(),
+      home:SetRoutePage(userId: '3',),
     );
   }
 }
