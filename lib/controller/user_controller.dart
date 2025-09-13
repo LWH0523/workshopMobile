@@ -26,4 +26,9 @@ class UserController {
       rethrow;
     }
   }
+
+  /// 獲取用戶資料
+  Future<Map<String, dynamic>?> getUserById(int userId) async {
+    return await _userService.getUserById(userId);
+  }
 }

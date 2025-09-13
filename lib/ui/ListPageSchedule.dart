@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../controller/ListPageScheduleController.dart';
+import '../controller/user_controller.dart';
 import '../database/ListPageScheduleDB.dart';
 import 'update.dart';
 
@@ -16,6 +17,35 @@ class ListPageSchedule extends StatefulWidget {
 class _ListPageScheduleState extends State<ListPageSchedule> {
   final ListPageScheduleController _controller =
   ListPageScheduleController(ListPageScheduleService());
+  final UserController _userController = UserController();
+  
+  // 添加狀態管理來追蹤當前選中的按鈕
+  bool _isTodaySelected = false;
+  // 添加用戶名稱狀態
+  String _userName = 'Kitty'; // 默認名稱
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  // 從數據庫獲取用戶名稱
+  Future<void> _loadUserName() async {
+    if (widget.userId != null) {
+      try {
+        final user = await _userController.getUserById(widget.userId!);
+        if (user != null && user['name'] != null) {
+          setState(() {
+            _userName = user['name'].toString();
+          });
+        }
+      } catch (e) {
+        print('Error loading user name: $e');
+        // 保持默認名稱 'Kitty'
+      }
+    }
+  }
 
   String _formatDateTime(String? date, String? time) {
     if (date == null || time == null) return '';
@@ -35,7 +65,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
-        title: const Text('Kitty', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(_userName, style: const TextStyle(fontWeight: FontWeight.w700)),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 12),
@@ -52,31 +82,46 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
             child: Row(
               children: [
                 Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2D4CC8),
-                      borderRadius: BorderRadius.circular(12),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isTodaySelected = false;
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: _isTodaySelected ? const Color(0xFFE9EFFD) : const Color(0xFF2D4CC8),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      alignment: Alignment.center,
+                      child: Text('Schedule',
+                          style: TextStyle(
+                              color: _isTodaySelected ? const Color(0xFF2D4CC8) : Colors.white, 
+                              fontWeight: FontWeight.w600)),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    alignment: Alignment.center,
-                    child: const Text('Schedule',
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.w600)),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE9EFFD),
-                      borderRadius: BorderRadius.circular(12),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isTodaySelected = true;
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: _isTodaySelected ? const Color(0xFF2D4CC8) : const Color(0xFFE9EFFD),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      alignment: Alignment.center,
+                      child: Text('Today',
+                          style: TextStyle(
+                              color: _isTodaySelected ? Colors.white : const Color(0xFF2D4CC8),
+                              fontWeight: FontWeight.w600)),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    alignment: Alignment.center,
-                    child: const Text('Today',
-                        style: TextStyle(
-                            color: Color(0xFF2D4CC8),
-                            fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
@@ -86,10 +131,12 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
           // Summary pill
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: FutureBuilder<List<Map<String, dynamic>>?>(
-              future: _controller.fetchTaskDeliverDetails(userId: widget.userId),
+            child: FutureBuilder<int>(
+              future: _isTodaySelected 
+                ? _controller.getTodayPendingDeliveriesCount(userId: widget.userId)
+                : _controller.getPendingDeliveriesCount(userId: widget.userId),
               builder: (context, snapshot) {
-                final int count = (snapshot.data?.length ?? 0);
+                final int count = snapshot.data ?? 0;
                 return Container(
                   width: double.infinity,
                   height: 44,
@@ -105,9 +152,9 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
                       children: [
                         const TextSpan(text: 'You have '),
                         TextSpan(text: '$count deliveries '),
-                        const TextSpan(
-                          text: 'Future',
-                          style: TextStyle(
+                        TextSpan(
+                          text: _isTodaySelected ? 'Today' : 'Future',
+                          style: const TextStyle(
                             color: Color(0xFF2D4CC8),
                             fontWeight: FontWeight.w700,
                           ),
@@ -123,13 +170,17 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
           // List of cards
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>?>(
-              future: _controller.fetchTaskDeliverDetails(userId: widget.userId),
+              future: _isTodaySelected 
+                ? _controller.fetchTodayTaskDeliverDetails(userId: widget.userId)
+                : _controller.fetchTaskDeliverDetails(userId: widget.userId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || (snapshot.data?.isEmpty ?? true)) {
-                  return const Center(child: Text('No deliveries'));
+                  return Center(
+                    child: Text(_isTodaySelected ? 'No deliveries today' : 'No deliveries')
+                  );
                 }
 
                 final List<Map<String, dynamic>> tasks = snapshot.data!;
