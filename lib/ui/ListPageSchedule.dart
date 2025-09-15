@@ -246,7 +246,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ProfilePage(userId: widget.userId!, userName: _userName),
+                builder: (_) => SetRoutePage(userId: widget.userId),
               ),
             );
           }
@@ -335,9 +335,7 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => SetRoutePage(userId: widget.userId, taskId: widget.id),
-                      ),
+                      MaterialPageRoute(builder: (_) => SetRoutePage(userId: widget.userId)),
                     );
                   },
                   child: Container(
