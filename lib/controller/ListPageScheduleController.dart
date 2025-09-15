@@ -19,7 +19,7 @@ class ListPageScheduleController {
   Future<int> getPendingDeliveriesCount({int? userId}) async {
     final allTasks = await scheduleService.getTaskDeliverDetails(userId: userId);
     if (allTasks == null) return 0;
-    
+
     int count = 0;
     for (var task in allTasks) {
       final status = task['status'] as String?;
@@ -35,7 +35,7 @@ class ListPageScheduleController {
   Future<int> getTodayPendingDeliveriesCount({int? userId}) async {
     final todayTasks = await scheduleService.getTodayTaskDeliverDetails(userId: userId);
     if (todayTasks == null) return 0;
-    
+
     int count = 0;
     for (var task in todayTasks) {
       final status = task['status'] as String?;

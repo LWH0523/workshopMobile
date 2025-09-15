@@ -65,11 +65,27 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
         title: Text(_userName, style: const TextStyle(fontWeight: FontWeight.w700)),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.person_outline),
-          )
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () {
+              if (widget.userId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfilePage(
+                      userId: widget.userId!, // ✅ 帶正確的 userId
+                      userName: _userName,    // ✅ 帶正確的 userName
+                    ),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("User ID 不存在，無法進入 Profile")),
+                );
+              }
+            },
+          ),
         ],
       ),
       body: Column(
@@ -208,6 +224,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
                         task['time'] as String?,
                       ),
                       component: task['component_name'] ?? '',
+                      componentNames: (task['component_names'] as List?)?.cast<String>() ?? const <String>[],
                       status: displayStatus,
                       statusColor: statusColor,
                     );
@@ -239,20 +256,21 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.list), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: ''),
         ],
       ),
     );
   }
 }
 
-class _ScheduleCard extends StatelessWidget {
+class _ScheduleCard extends StatefulWidget {
   final int id;
   final int userId;
   final String workshop;
   final String destination;
   final String dateTime;
   final String component;
+  final List<String> componentNames;
   final String status;
   final Color statusColor;
 
@@ -263,12 +281,29 @@ class _ScheduleCard extends StatelessWidget {
     required this.destination,
     required this.dateTime,
     required this.component,
+    required this.componentNames,
     required this.status,
     required this.statusColor,
   });
 
   @override
+  State<_ScheduleCard> createState() => _ScheduleCardState();
+}
+
+class _ScheduleCardState extends State<_ScheduleCard> {
+  String? _selectedComponent;
+  bool _componentsExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    // compute component names and what to display based on expansion
+    final List<String> _allNames = (widget.componentNames.isEmpty)
+        ? (widget.component.isEmpty ? <String>[] : <String>[widget.component])
+        : widget.componentNames;
+    final List<String> _displayNames = _componentsExpanded
+        ? _allNames
+        : (_allNames.isNotEmpty ? <String>[_allNames.first] : <String>[]);
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -296,23 +331,23 @@ class _ScheduleCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
-                // ✅ 只有這裡加 GestureDetector
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => SetRoutePage(userId: userId, taskId: id,)),
+                      MaterialPageRoute(
+                        builder: (_) => SetRoutePage(userId: widget.userId, taskId: widget.id),
+                      ),
                     );
                   },
                   child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      "T$id",
+                      "T${widget.id}",
                       style: const TextStyle(
                         color: Color(0xFF2D4CC8),
                         fontWeight: FontWeight.w700,
@@ -322,16 +357,15 @@ class _ScheduleCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor,
+                    color: widget.statusColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    status,
+                    widget.status,
                     style: TextStyle(
-                      color: statusColor == const Color(0xFF4CAF50)
+                      color: widget.statusColor == const Color(0xFF4CAF50)
                           ? Colors.white
                           : Colors.black,
                       fontWeight: FontWeight.w600,
@@ -344,7 +378,7 @@ class _ScheduleCard extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => MapLauncherExample(initialTaskId: id),
+                        builder: (_) => MapLauncherExample(initialTaskId: widget.id),
                       ),
                     );
                   },
@@ -358,7 +392,7 @@ class _ScheduleCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(workshop,
+                Text(widget.workshop,
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
@@ -368,7 +402,7 @@ class _ScheduleCard extends StatelessWidget {
                     const Icon(Icons.location_on_outlined,
                         size: 18, color: Colors.black54),
                     const SizedBox(width: 6),
-                    Expanded(child: Text(destination)),
+                    Expanded(child: Text(widget.destination)),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -377,16 +411,37 @@ class _ScheduleCard extends StatelessWidget {
                     const Icon(Icons.calendar_today_outlined,
                         size: 18, color: Colors.black54),
                     const SizedBox(width: 6),
-                    Text(dateTime),
+                    Text(widget.dateTime),
                   ],
                 ),
-                const SizedBox(height: 6),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Icon(Icons.build_outlined,
                         size: 18, color: Colors.black54),
                     const SizedBox(width: 6),
-                    Text(component),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final n in _displayNames) Text(n),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      iconSize: 18,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: Icon(
+                        _componentsExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Colors.black54,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _componentsExpanded = !_componentsExpanded;
+                        });
+                      },
+                    ),
                   ],
                 ),
               ],

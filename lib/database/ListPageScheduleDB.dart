@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-  class ListPageScheduleService {
+class ListPageScheduleService {
   final SupabaseClient _client = Supabase.instance.client;
 
   Future<List<Map<String, dynamic>>?> getTaskDeliverDetails({int? userId}) async {
@@ -57,7 +57,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
       // 獲取今天的日期 (YYYY-MM-DD 格式)
       final DateTime now = DateTime.now();
       final String today = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      
+
       final query = _client
           .from('taskDeliver')
           .select('id, component_id, user_id, quantity, destination, dueDate, time, status, task_deliver_component(component(name, workshop)), component(name, workshop)')
