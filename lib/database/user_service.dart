@@ -1,3 +1,5 @@
+// lib/database/user_service.dart
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserService {
@@ -18,5 +20,25 @@ class UserService {
       'id': userId,
       'name': name,
     });
+  }
+
+  /// 上傳頭像到 Supabase Storage
+  Future<String> uploadUserImage(int userId, File file) async {
+    final fileName = 'user_$userId.png';
+    await supabase.storage.from('avatars').upload(
+      fileName,
+      file,
+      fileOptions: const FileOptions(upsert: true),
+    );
+    // 回傳公開 URL
+    return supabase.storage.from('avatars').getPublicUrl(fileName);
+  }
+
+  /// 更新 user 表中的頭像 URL
+  Future<void> updateUserImage(int userId, String imageUrl) async {
+    await supabase
+        .from('user')
+        .update({'image': imageUrl})
+        .eq('id', userId);
   }
 }

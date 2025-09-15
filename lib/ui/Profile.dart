@@ -1,10 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '../controller/user_controller.dart';
 import '../widgets/app_bottom_nav.dart';
 
 class ProfilePage extends StatefulWidget {
   final String userName;
+  final int userId;
 
-  const ProfilePage({super.key, this.userName = 'Kitty'});
+  const ProfilePage({super.key, required this.userName, required this.userId});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -12,6 +16,36 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   int _bottomIndex = 0;
+  String? _imageUrl; // ✅ 儲存最新頭像 URL
+
+  Future<void> _pickAndUploadImage() async {
+    debugPrint("📷 Avatar tapped"); // ✅ 用來確認事件有觸發
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+
+      try {
+        // 1️⃣ 呼叫 controller 上傳 + 更新 DB
+        final newImageUrl =
+        await UserController().updateProfilePicture(widget.userId, file);
+
+        // 2️⃣ 更新畫面
+        setState(() {
+          _imageUrl = newImageUrl;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ 頭像更新成功！')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ 更新失敗: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,12 +66,23 @@ class _ProfilePageState extends State<ProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 12),
-          _Avatar(name: widget.userName),
+          _Avatar(
+            name: widget.userName,
+            imageUrl: _imageUrl,
+            onTap: _pickAndUploadImage, // ✅ 把 callback 傳給 _Avatar
+          ),
           const SizedBox(height: 8),
           Center(
             child: Text(
               widget.userName,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Center(
+            child: Text(
+              "User ID: ${widget.userId}",
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ),
           const SizedBox(height: 16),
@@ -46,12 +91,16 @@ class _ProfilePageState extends State<ProfilePage> {
           _ListTile(
             icon: Icons.history,
             label: 'History',
-            onTap: () {},
+            onTap: () {
+              debugPrint('Go to history for userId: ${widget.userId}');
+            },
           ),
           _ListTile(
             icon: Icons.logout,
             label: 'Logout',
-            onTap: () {},
+            onTap: () {
+              debugPrint('Logout userId: ${widget.userId}');
+            },
           ),
           const Spacer(),
         ],
@@ -62,7 +111,6 @@ class _ProfilePageState extends State<ProfilePage> {
           setState(() {
             _bottomIndex = index;
           });
-          // navigation hooks can be added here
         },
       ),
     );
@@ -71,35 +119,49 @@ class _ProfilePageState extends State<ProfilePage> {
 
 class _Avatar extends StatelessWidget {
   final String name;
-  const _Avatar({required this.name});
+  final String? imageUrl;
+  final VoidCallback onTap;
+
+  const _Avatar({required this.name, this.imageUrl, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          const CircleAvatar(
-            radius: 48,
-            backgroundImage: NetworkImage('https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop'),
+          GestureDetector(
+            onTap: onTap, // ✅ 點整個頭像也能換圖
+            child: CircleAvatar(
+              radius: 48,
+              backgroundImage: imageUrl != null
+                  ? NetworkImage(imageUrl!)
+                  : const NetworkImage(
+                  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop'),
+            ),
           ),
           Positioned(
             right: 0,
             bottom: 0,
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x1A000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+            child: GestureDetector(
+              onTap: onTap, // ✅ 點小相機按鈕也能換圖
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x1A000000),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.photo_camera_outlined,
+                    size: 18, color: Colors.black87),
               ),
-              child: const Icon(Icons.photo_camera_outlined, size: 18, color: Colors.black87),
             ),
           ),
         ],
@@ -109,9 +171,9 @@ class _Avatar extends StatelessWidget {
 }
 
 class _ListTile extends StatelessWidget {
-  final IconData icon; 
-  final String label; 
-  final VoidCallback onTap; 
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
 
   const _ListTile({required this.icon, required this.label, required this.onTap});
 
@@ -135,5 +197,4 @@ class _ListTile extends StatelessWidget {
     );
   }
 }
-
 

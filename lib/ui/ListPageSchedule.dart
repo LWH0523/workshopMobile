@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../controller/ListPageScheduleController.dart';
 import '../controller/user_controller.dart';
 import '../database/ListPageScheduleDB.dart';
+import 'Profile.dart';
 import 'update.dart';
 import 'MapLauncherExample.dart';
 
@@ -64,11 +65,27 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
         title: Text(_userName, style: const TextStyle(fontWeight: FontWeight.w700)),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.person_outline),
-          )
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () {
+              if (widget.userId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfilePage(
+                      userId: widget.userId!, // ✅ 帶正確的 userId
+                      userName: _userName,    // ✅ 帶正確的 userName
+                    ),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("User ID 不存在，無法進入 Profile")),
+                );
+              }
+            },
+          ),
         ],
       ),
       body: Column(
@@ -295,17 +312,15 @@ class _ScheduleCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
-                // ✅ 只有這裡加 GestureDetector
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => SetRoutePage(userId: userId,)),
+                      MaterialPageRoute(builder: (_) => SetRoutePage(userId: userId)),
                     );
                   },
                   child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
@@ -321,8 +336,7 @@ class _ScheduleCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor,
                     borderRadius: BorderRadius.circular(8),
