@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:testapi/ui/ListPageSchedule.dart';
 import 'package:testapi/ui/update.dart';
 import 'package:testapi/ui/login.dart';
-import 'MapLauncherExample.dart'; // Correct import
+import 'package:testapi/ui/MapLauncherExample.dart'; // Correct import
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +25,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       //home: MapLauncherExample(),
+      //home: ListPageSchedule(),
       home: const FingerprintLoginScreen(),
     );
   }

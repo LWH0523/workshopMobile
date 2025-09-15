@@ -5,6 +5,7 @@ import '../controller/ListPageScheduleController.dart';
 import '../controller/user_controller.dart';
 import '../database/ListPageScheduleDB.dart';
 import 'update.dart';
+import 'MapLauncherExample.dart';
 
 class ListPageSchedule extends StatefulWidget {
   final int? userId;
@@ -337,7 +338,17 @@ class _ScheduleCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                const Icon(Icons.more_horiz, color: Colors.white),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MapLauncherExample(initialTaskId: id),
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.more_horiz, color: Colors.white),
+                ),
               ],
             ),
           ),
