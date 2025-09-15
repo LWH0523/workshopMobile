@@ -276,7 +276,7 @@ class _ScheduleCard extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const SetRoutePage(userId: '',)),
+                      MaterialPageRoute(builder: (_) => SetRoutePage(userId: userId,)),
                     );
                   },
                   child: Container(

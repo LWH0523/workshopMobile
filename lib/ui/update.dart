@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../controller/updateController.dart';
 import '../database/updateDB.dart';
+import 'confirmation.dart';
 
 class SetRoutePage extends StatefulWidget {
-  const SetRoutePage({super.key, required String userId});
+  final int? userId;
+  const SetRoutePage({super.key, this.userId});
 
   @override
   State<SetRoutePage> createState() => _SetRoutePageState();
@@ -12,13 +14,10 @@ class SetRoutePage extends StatefulWidget {
 
 class _SetRoutePageState extends State<SetRoutePage> {
   final updateController = UpdateController(UpdateService());
-  Map<String, dynamic>? selectedTask;
+  List<Map<String, dynamic>> tasks = [];
 
-  // 按鈕文字狀態
+  String status = "pending";
   String buttonText = "Picked Up";
-
-  // 是否已經被 picked up / enroute / delivered
-  String status = "pending"; // possible: pending, picked up, enroute, delivered
 
   String formatDateTime(String? date, String? time) {
     if (date == null || time == null) return '';
@@ -30,6 +29,86 @@ class _SetRoutePageState extends State<SetRoutePage> {
     }
   }
 
+  void updateButtonText(String newStatus) {
+    if (newStatus == "pending") {
+      buttonText = "Picked Up";
+    } else if (newStatus == "picked up") {
+      buttonText = "Enroute";
+    } else if (newStatus == "enroute") {
+      buttonText = "Enroute";
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTasks();
+  }
+
+  Future<void> fetchTasks() async {
+    final data = await updateController.fetchTaskDeliverDetails(userId: widget.userId!);
+
+    if (data != null && data.isNotEmpty) {
+      setState(() {
+        tasks = data.where((task) => task['user_id'] == widget.userId).toList();
+        print("filtered tasks: $tasks");
+
+        if (tasks.isNotEmpty) {
+          status = tasks.first['status'] ?? "pending";
+          updateButtonText(status);
+        }
+      });
+    } else {
+      print("⚠️ No data found for userId=${widget.userId}");
+    }
+  }
+
+  String getNextStatus(String currentStatus) {
+    if (currentStatus == "pending") return "picked up";
+    if (currentStatus == "picked up") return "enroute";
+    return currentStatus;
+  }
+
+  void showStatusDialog(BuildContext context, String message, {bool isSuccess = true}) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (Navigator.canPop(context)) Navigator.pop(context);
+        });
+
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.network(
+                  isSuccess
+                      ? 'https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/qlementine-icons--success-12.png'
+                      : 'https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/lets-icons--sad.png',
+                  width: 48,
+                  height: 48,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +116,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF2D4CC8),
         elevation: 0,
-        title: const Text("Set Route"),
+        title: const Text("Set Route", style: TextStyle(color: Colors.white),),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
@@ -59,33 +138,40 @@ class _SetRoutePageState extends State<SetRoutePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.network(
-                      status == "picked up" || status == "enroute" || status == "delivered"
+                      status == "picked up" || status == "enroute" || status == "delivered" || status == "rejected"
                           ? "https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/icon-park--delivery%20(1).png"
                           : "https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/icon-park--delivery.png",
                       width: 45,
                       height: 45,
+                      color: (status == "pending" && status != "rejected") ? const Color(0xFFA0CFFF) : Colors.white,
                     ),
                     const SizedBox(width: 14),
                     const Icon(Icons.more_horiz, color: Colors.white, size: 20),
                     const SizedBox(width: 14),
                     Image.network(
-                      status == "enroute" || status == "delivered"
-                          ? "https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/streamline-cyber-color--pickup-truck.png"
+                      status == "enroute" || status == "delivered" || status == "rejected"
+                          ? "https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/streamline-cyber-color--pickup-truck%20(1).png"
                           : "https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/streamline-cyber-color--pickup-truck.png",
                       width: 45,
                       height: 45,
-                      color: status == "pending" ? const Color(0xFFA0CFFF) : null,
+                      color: (status == "pending" || status == "picked up") && status != "rejected"
+                          ? const Color(0xFFA0CFFF)
+                          : Colors.white,
                     ),
                     const SizedBox(width: 14),
                     const Icon(Icons.more_horiz, color: Colors.white, size: 20),
                     const SizedBox(width: 14),
                     Image.network(
                       status == "delivered"
-                          ? "https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/hugeicons--package-delivered.png"
+                          ? "https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/hugeicons--package-delivered%20(1).png"
+                          : status == "rejected"
+                          ? "https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/openmoji--cross-mark.png"
                           : "https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/hugeicons--package-delivered.png",
                       width: 45,
                       height: 45,
-                      color: status == "pending" || status == "picked up" ? const Color(0xFFA0CFFF) : null,
+                      color: status == "pending" || status == "picked up"
+                          ? const Color(0xFFA0CFFF)
+                          : (status == "rejected" ? null : Colors.white),
                     ),
                   ],
                 ),
@@ -94,74 +180,34 @@ class _SetRoutePageState extends State<SetRoutePage> {
           ),
 
           // card area
-          FutureBuilder(
-            future: updateController.fetchTaskDeliverDetails(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-              if (!snapshot.hasData || snapshot.data == null) {
-                return const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: Text("No data found")),
-                );
-              }
+          Expanded(
+            child: tasks.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                final formattedDateTime = formatDateTime(task['duedate'], task['time']);
 
-              final tasks = snapshot.data!;
-              final task = tasks.isNotEmpty ? tasks.first : null;
-
-              if (task == null) {
-                return const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: Text("No task available")),
-                );
-              }
-
-              final formattedDateTime = formatDateTime(
-                task['duedate'] as String?,
-                task['time'] as String?,
-              );
-
-              selectedTask = task;
-
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Card(
+                return Card(
+                  color: Colors.white,
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    title: Text(
+                      task['component_name'] ?? '',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF2D4CC8),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                task['id'] ?? '',
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            const Spacer(),
-                            const Icon(Icons.more_vert, color: Colors.black54),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          task['workshop'] ?? '',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
+                        Text(task['workshop'] ?? ''),
+                        const SizedBox(height: 6),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -183,81 +229,95 @@ class _SetRoutePageState extends State<SetRoutePage> {
                             Text(formattedDateTime),
                           ],
                         ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Icon(Icons.build, color: Colors.black54, size: 18),
-                            const SizedBox(width: 6),
-                            Text(task['component_name'] ?? ''),
-                          ],
-                        ),
                       ],
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-
-          const Spacer(),
-
-          // 按鈕區域
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2D4CC8),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              onPressed: () async {
-                if (selectedTask == null) return;
-
-                String nextStatus;
-                if (status == "pending") {
-                  nextStatus = "picked up";
-                } else if (status == "picked up") {
-                  nextStatus = "enroute";
-                } else if (status == "enroute") {
-                  nextStatus = "delivered";
-                } else {
-                  return; // delivered 已完成
-                }
-
-                final success = await updateController.updateStatus(
-                  selectedTask!['id'].toString(),
-                  nextStatus,
                 );
-
-                if (success && mounted) {
-                  setState(() {
-                    status = nextStatus;
-                    if (status == "picked up") {
-                      buttonText = "Enroute";
-                    } else if (status == "enroute") {
-                      buttonText = "Delivered";
-                    } else if (status == "delivered") {
-                      buttonText = "Delivered"; // 最後狀態
-                    }
-                  });
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Status updated to ${nextStatus.replaceAll('_', ' ').toUpperCase()}")),
-                  );
-                }
               },
-              child: Text(
-                buttonText,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
             ),
           ),
+
+          // 按鈕區域
+          if (status != "delivered" && status != "rejected")
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2D4CC8),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: () async {
+                    if (tasks.isEmpty) return;
+
+                    final nextStatus = getNextStatus(status);
+
+                    if (nextStatus == "enroute") {
+                      setState(() {
+                        status = nextStatus;
+                        updateButtonText(status);
+                        for (var task in tasks) {
+                          task['status'] = nextStatus;
+                        }
+                      });
+
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ConfirmationPage(),
+                        ),
+                      );
+
+                      final hasConfirmation = await updateController.checkSignatureOrImage(widget.userId!);
+
+                      String finalStatus;
+                      if (hasConfirmation) {
+                        finalStatus = "delivered";
+                        showStatusDialog(context, "Delivered Successful", isSuccess: true);
+                      } else {
+                        finalStatus = "rejected";
+                        showStatusDialog(context, "Delivery has been Rejected", isSuccess: false);
+                      }
+
+                      final success = await updateController.updateStatus(widget.userId!, finalStatus);
+                      if (success && mounted) {
+                        setState(() {
+                          status = finalStatus;
+                          for (var task in tasks) {
+                            task['status'] = finalStatus;
+                          }
+                        });
+                      }
+                    } else {
+                      final success = await updateController.updateStatus(widget.userId!, nextStatus);
+                      if (success && mounted) {
+                        setState(() {
+                          status = nextStatus;
+                          updateButtonText(status);
+                          for (var task in tasks) {
+                            task['status'] = nextStatus;
+                          }
+                        });
+
+                        if (nextStatus == "picked up") {
+                          showStatusDialog(context, "Picked Up Successful", isSuccess: true);
+                        }
+                      }
+                    }
+                  },
+                  child: Text(
+                    buttonText,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: const Color(0xFF2D4CC8),
         unselectedItemColor: Colors.black54,
