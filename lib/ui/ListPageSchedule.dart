@@ -18,10 +18,8 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
   final ListPageScheduleController _controller =
   ListPageScheduleController(ListPageScheduleService());
   final UserController _userController = UserController();
-  
-  // 添加狀態管理來追蹤當前選中的按鈕
+
   bool _isTodaySelected = false;
-  // 添加用戶名稱狀態
   String _userName = 'Kitty'; // 默認名稱
 
   @override
@@ -30,7 +28,6 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
     _loadUserName();
   }
 
-  // 從數據庫獲取用戶名稱
   Future<void> _loadUserName() async {
     if (widget.userId != null) {
       try {
@@ -42,7 +39,6 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
         }
       } catch (e) {
         print('Error loading user name: $e');
-        // 保持默認名稱 'Kitty'
       }
     }
   }
@@ -76,51 +72,57 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top toggle buttons
+          // Toggle buttons
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isTodaySelected = false;
-                      });
-                    },
+                    onTap: () => setState(() => _isTodaySelected = false),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: _isTodaySelected ? const Color(0xFFE9EFFD) : const Color(0xFF2D4CC8),
+                        color: _isTodaySelected
+                            ? const Color(0xFFE9EFFD)
+                            : const Color(0xFF2D4CC8),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       alignment: Alignment.center,
-                      child: Text('Schedule',
-                          style: TextStyle(
-                              color: _isTodaySelected ? const Color(0xFF2D4CC8) : Colors.white, 
-                              fontWeight: FontWeight.w600)),
+                      child: Text(
+                        'Schedule',
+                        style: TextStyle(
+                          color: _isTodaySelected
+                              ? const Color(0xFF2D4CC8)
+                              : Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isTodaySelected = true;
-                      });
-                    },
+                    onTap: () => setState(() => _isTodaySelected = true),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: _isTodaySelected ? const Color(0xFF2D4CC8) : const Color(0xFFE9EFFD),
+                        color: _isTodaySelected
+                            ? const Color(0xFF2D4CC8)
+                            : const Color(0xFFE9EFFD),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       alignment: Alignment.center,
-                      child: Text('Today',
-                          style: TextStyle(
-                              color: _isTodaySelected ? Colors.white : const Color(0xFF2D4CC8),
-                              fontWeight: FontWeight.w600)),
+                      child: Text(
+                        'Today',
+                        style: TextStyle(
+                          color: _isTodaySelected
+                              ? Colors.white
+                              : const Color(0xFF2D4CC8),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -132,9 +134,9 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: FutureBuilder<int>(
-              future: _isTodaySelected 
-                ? _controller.getTodayPendingDeliveriesCount(userId: widget.userId)
-                : _controller.getPendingDeliveriesCount(userId: widget.userId),
+              future: _isTodaySelected
+                  ? _controller.getTodayPendingDeliveriesCount(userId: widget.userId)
+                  : _controller.getPendingDeliveriesCount(userId: widget.userId),
               builder: (context, snapshot) {
                 final int count = snapshot.data ?? 0;
                 return Container(
@@ -170,17 +172,18 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
           // List of cards
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>?>(
-              future: _isTodaySelected 
-                ? _controller.fetchTodayTaskDeliverDetails(userId: widget.userId)
-                : _controller.fetchTaskDeliverDetails(userId: widget.userId),
+              future: _isTodaySelected
+                  ? _controller.fetchTodayTaskDeliverDetails(userId: widget.userId)
+                  : _controller.fetchTaskDeliverDetails(userId: widget.userId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || (snapshot.data?.isEmpty ?? true)) {
                   return Center(
-                    child: Text(_isTodaySelected ? 'No deliveries today' : 'No deliveries')
-                  );
+                      child: Text(_isTodaySelected
+                          ? 'No deliveries today'
+                          : 'No deliveries'));
                 }
 
                 final List<Map<String, dynamic>> tasks = snapshot.data!;
@@ -189,10 +192,8 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
                   itemBuilder: (context, index) {
                     final task = tasks[index];
                     final deliveryStatus = task['status'] as String?;
-                    final displayStatus =
-                    _controller.getDisplayStatus(deliveryStatus);
-                    final statusColor =
-                    _controller.getStatusColor(displayStatus);
+                    final displayStatus = _controller.getDisplayStatus(deliveryStatus);
+                    final statusColor = _controller.getStatusColor(displayStatus);
 
                     return _ScheduleCard(
                       id: task['id'] as int,
@@ -208,8 +209,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
                       statusColor: statusColor,
                     );
                   },
-                  separatorBuilder: (context, index) =>
-                  const SizedBox(height: 12),
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemCount: tasks.length,
                 );
               },
@@ -260,7 +260,6 @@ class _ScheduleCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header bar with id and menu
           Container(
             decoration: const BoxDecoration(
               color: Color(0xFF2D4CC8),
@@ -272,9 +271,13 @@ class _ScheduleCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
+                // ✅ 只有這裡加 GestureDetector
                 GestureDetector(
                   onTap: () {
-                    // _navigateToPage(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SetRoutePage(userId: '',)),
+                    );
                   },
                   child: Container(
                     padding:
@@ -358,13 +361,4 @@ class _ScheduleCard extends StatelessWidget {
       ),
     );
   }
-
-  // void _navigateToPage(BuildContext context) {
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => SetRoutePage(userId: userId),
-  //     ),
-  //   );
-  // }
 }
