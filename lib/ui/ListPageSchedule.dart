@@ -227,7 +227,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const SetRoutePage(userId: ''),
+                builder: (_) => SetRoutePage(userId: widget.userId),
               ),
             );
           }

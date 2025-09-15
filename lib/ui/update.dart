@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../controller/updateController.dart';
 import '../database/updateDB.dart';
+import 'ListPageSchedule.dart';
 import 'confirmation.dart';
 
 class SetRoutePage extends StatefulWidget {
@@ -15,6 +16,7 @@ class SetRoutePage extends StatefulWidget {
 class _SetRoutePageState extends State<SetRoutePage> {
   final updateController = UpdateController(UpdateService());
   List<Map<String, dynamic>> tasks = [];
+  int _bottomIndex = 1;
 
   String status = "pending";
   String buttonText = "Picked Up";
@@ -59,7 +61,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
         }
       });
     } else {
-      print("⚠️ No data found for userId=${widget.userId}");
+      print("No data found for userId=${widget.userId}");
     }
   }
 
@@ -321,8 +323,22 @@ class _SetRoutePageState extends State<SetRoutePage> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _bottomIndex,
         selectedItemColor: const Color(0xFF2D4CC8),
         unselectedItemColor: Colors.black54,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ListPageSchedule(userId: widget.userId),
+              ),
+            );
+          }
+          setState(() {
+            _bottomIndex = index;
+          });
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.list), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.notifications), label: ''),
