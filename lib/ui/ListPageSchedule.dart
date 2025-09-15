@@ -21,6 +21,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
 
   bool _isTodaySelected = false;
   String _userName = 'Kitty'; // 默認名稱
+  int _bottomIndex = 0;
 
   @override
   void initState() {
@@ -215,6 +216,28 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
               },
             ),
           ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _bottomIndex,
+        selectedItemColor: const Color(0xFF2D4CC8),
+        unselectedItemColor: Colors.black54,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SetRoutePage(userId: ''),
+              ),
+            );
+          }
+          setState(() {
+            _bottomIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: ''),
         ],
       ),
     );
