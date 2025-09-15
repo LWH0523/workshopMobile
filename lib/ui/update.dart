@@ -3,11 +3,13 @@ import 'package:intl/intl.dart';
 import '../controller/updateController.dart';
 import '../database/updateDB.dart';
 import 'ListPageSchedule.dart';
+import 'Profile.dart';
 import 'confirmation.dart';
 
 class SetRoutePage extends StatefulWidget {
   final int? userId;
-  const SetRoutePage({super.key, this.userId});
+  final int? taskId;
+  const SetRoutePage({super.key, this.userId, this.taskId});
 
   @override
   State<SetRoutePage> createState() => _SetRoutePageState();
@@ -16,7 +18,7 @@ class SetRoutePage extends StatefulWidget {
 class _SetRoutePageState extends State<SetRoutePage> {
   final updateController = UpdateController(UpdateService());
   List<Map<String, dynamic>> tasks = [];
-  int _bottomIndex = 1;
+  int _bottomIndex = 0;
 
   String status = "pending";
   String buttonText = "Picked Up";
@@ -44,24 +46,31 @@ class _SetRoutePageState extends State<SetRoutePage> {
   @override
   void initState() {
     super.initState();
+    print("SetRoutePage initState called with userId=${widget.userId}, taskId=${widget.taskId}");
     fetchTasks();
   }
 
+
   Future<void> fetchTasks() async {
-    final data = await updateController.fetchTaskDeliverDetails(userId: widget.userId!);
+    if (widget.userId == null || widget.taskId == null) return;
+
+    print("fetchTasks called with userId=${widget.userId}, taskId=${widget.taskId}");
+
+    final data = await updateController.fetchTaskDeliverDetails(
+      userId: widget.userId!,
+      taskId: widget.taskId!, // 傳入選定的 taskId
+    );
 
     if (data != null && data.isNotEmpty) {
       setState(() {
-        tasks = data.where((task) => task['user_id'] == widget.userId).toList();
-        print("filtered tasks: $tasks");
+        tasks = data; // data 應該只包含選定 task
+        print("fetched task for taskId=${widget.taskId}: $tasks");
 
-        if (tasks.isNotEmpty) {
-          status = tasks.first['status'] ?? "pending";
-          updateButtonText(status);
-        }
+        status = tasks.first['status'] ?? "pending";
+        updateButtonText(status);
       });
     } else {
-      print("No data found for userId=${widget.userId}");
+      print("No data found for userId=${widget.userId} and taskId=${widget.taskId}");
     }
   }
 
@@ -276,7 +285,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
                         ),
                       );
 
-                      final hasConfirmation = await updateController.checkSignatureOrImage(widget.userId!);
+                      final hasConfirmation = await updateController.checkSignatureOrImage(widget.userId!, widget.taskId!);
 
                       String finalStatus;
                       if (hasConfirmation) {
@@ -287,7 +296,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
                         showStatusDialog(context, "Delivery has been Rejected", isSuccess: false);
                       }
 
-                      final success = await updateController.updateStatus(widget.userId!, finalStatus);
+                      final success = await updateController.updateStatus(widget.userId!, widget.taskId!, finalStatus);
                       if (success && mounted) {
                         setState(() {
                           status = finalStatus;
@@ -297,7 +306,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
                         });
                       }
                     } else {
-                      final success = await updateController.updateStatus(widget.userId!, nextStatus);
+                      final success = await updateController.updateStatus(widget.userId!, widget.taskId!, nextStatus);
                       if (success && mounted) {
                         setState(() {
                           status = nextStatus;
@@ -322,6 +331,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
             ),
         ],
       ),
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _bottomIndex,
         selectedItemColor: const Color(0xFF2D4CC8),
@@ -334,6 +344,13 @@ class _SetRoutePageState extends State<SetRoutePage> {
                 builder: (_) => ListPageSchedule(userId: widget.userId),
               ),
             );
+          } else if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProfilePage(userId: widget.userId!, userName: '',),
+              ),
+            );
           }
           setState(() {
             _bottomIndex = index;
@@ -341,7 +358,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.list), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
         ],
       ),
     );

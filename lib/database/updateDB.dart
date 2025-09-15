@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class UpdateService {
   final SupabaseClient _client = Supabase.instance.client;
 
-  Future<List<Map<String, dynamic>>?> getTaskDeliverDetails({int? userId}) async {
+  Future<List<Map<String, dynamic>>?> getTaskDeliverDetails({int? userId, int? taskId}) async {
     try {
       var query = _client
           .from('taskDeliver')
@@ -13,11 +13,12 @@ class UpdateService {
       if (userId != null) {
         query = query.eq('user_id', userId);
       }
+      if (taskId != null) query = query.eq('id', taskId);
 
       final response = await query;
 
       final List<Map<String, dynamic>> data = (response as List).map((item) => {
-        'id': item['id']?.toString(),
+        'id': (item['id'] as num?)?.toInt() ?? 0,
         'component_id': item['component_id']?.toString(),
         'user_id': (item['user_id'] as num?)?.toInt() ?? 0,
         'quantity': item['quantity']?.toString(),
@@ -31,7 +32,8 @@ class UpdateService {
         'workshop': item['component']?['workshop']?.toString() ?? '',
       }).toList();
 
-      data.sort((a, b) => int.parse(a['id']!).compareTo(int.parse(b['id']!)));
+      data.sort((a, b) => a['id'].compareTo(b['id']));
+      print('DB fetched data: $data'); // debug
       return data;
     } catch (e) {
       print('Error fetching taskDeliver details: $e');
@@ -39,7 +41,7 @@ class UpdateService {
     }
   }
 
-  Future<bool> updateTaskStatus(int userId, String status) async {
+  Future<bool> updateTaskStatus(int userId, int taskId, String status) async {
     try {
       final tasks = await getTaskDeliverDetails(userId: userId);
       if (tasks == null || tasks.isEmpty) return false;

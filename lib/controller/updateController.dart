@@ -5,16 +5,16 @@ class UpdateController {
 
   UpdateController(this.updateService);
 
-  Future<List<Map<String, dynamic>>?> fetchTaskDeliverDetails({required int userId}) async {
-    return await updateService.getTaskDeliverDetails(userId: userId);
+  Future<List<Map<String, dynamic>>?> fetchTaskDeliverDetails({required int userId, required int taskId}) async {
+    return await updateService.getTaskDeliverDetails(userId: userId, taskId: taskId);
   }
 
-  Future<bool> updateStatus(int userId, String status) async {
-    return await updateService.updateTaskStatus(userId, status);
+  Future<bool> updateStatus(int userId, int taskId, String status) async {
+    return await updateService.updateTaskStatus(userId, taskId, status);
   }
 
-  Future<bool> checkSignatureOrImage(int userId) async {
-    final tasks = await fetchTaskDeliverDetails(userId: userId);
+  Future<bool> checkSignatureOrImage(int userId, int taskId) async {
+    final tasks = await fetchTaskDeliverDetails(userId: userId, taskId: taskId);
     if (tasks == null || tasks.isEmpty) return false;
 
     for (var task in tasks) {
@@ -24,5 +24,11 @@ class UpdateController {
       }
     }
     return false;
+  }
+
+  Future<Map<String, dynamic>?> fetchTaskById({required int userId, required int taskId}) async {
+    final tasks = await fetchTaskDeliverDetails(userId: userId, taskId: taskId);
+    if (tasks == null || tasks.isEmpty) return null;
+    return tasks.first;
   }
 }
