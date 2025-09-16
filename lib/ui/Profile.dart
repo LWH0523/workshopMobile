@@ -99,7 +99,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 MaterialPageRoute(
                   builder: (context) => HistoryPage(
                     userId: widget.userId,
-                    taskId: 0, // 如果要抓全部 task 可以改成 null 或 0
+                    taskId: 0,
                   ),
                 ),
               );

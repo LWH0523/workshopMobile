@@ -8,7 +8,4 @@ class HistoryController {
   Future<List<Map<String, dynamic>>?> fetchTaskDeliverDetails({required int userId, required int taskId}) async {
     return await historyService.getTask(userId: userId, taskId: taskId);
   }
-
-
-
 }

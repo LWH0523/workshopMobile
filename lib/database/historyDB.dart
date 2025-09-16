@@ -12,6 +12,7 @@ class HistoryService {
 
       if (userId != null) {
         query = query.eq('user_id', userId);
+
       }
 
       // 只有當 taskId 非空且不為 0 時才篩選

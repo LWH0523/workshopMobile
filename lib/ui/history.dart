@@ -21,7 +21,6 @@ class _HistoryPageState extends State<HistoryPage> {
   List<Map<String, dynamic>> _tasks = [];
   bool _isLoading = true;
 
-  // 展開狀態用 Map 儲存，不然多個卡片會互相干擾
   final Map<int, bool> _expandedMap = {};
 
   @override
@@ -177,7 +176,6 @@ class _HistoryPageState extends State<HistoryPage> {
                   ),
                 ),
 
-                // 🔹 下半部分 (白色背景, 卡內容)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -191,7 +189,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 🏭 Workshop
+                      // Workshop
                       Text(
                         task['workshop'] ?? '',
                         style: const TextStyle(
@@ -202,7 +200,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       ),
                       const SizedBox(height: 12),
 
-                      // 📍 Destination
+                      // Destination
                       Row(
                         children: [
                           const Icon(Icons.location_on,
