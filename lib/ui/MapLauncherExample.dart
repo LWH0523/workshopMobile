@@ -55,6 +55,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
               'name': component['name'],
               'workshop': component['workshop'],
               'destination': component['destination'],
+              'business_hour': component['business_hour'],
               'qty': component['qty'] ?? component['quantity'] ?? 0,
             });
           }
@@ -133,6 +134,76 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
     );
   }
 
+  Widget _buildBusinessHourBox(String businessHourText) {
+    final List<String> lines = businessHourText
+        .split('\n')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    final RegExp multiSpace = RegExp(r"\s{2,}");
+    final RegExp firstDigitSplit = RegExp(r'^(.*?)(\d.*)$');
+    final List<Widget> children = [];
+
+    for (final line in lines) {
+      String day = line;
+      String time = '';
+
+      // Prefer split on 2+ spaces (common for aligned text).
+      final parts = line.split(multiSpace);
+      if (parts.length >= 2) {
+        day = parts.first;
+        time = parts.sublist(1).join(' ');
+      } else {
+        // Better fallback: split at the first digit (start of time like 9:30am)
+        final match = firstDigitSplit.firstMatch(line);
+        if (match != null) {
+          day = (match.group(1) ?? '').trim();
+          time = (match.group(2) ?? '').trim();
+        } else {
+          // Last resort: split by the first colon
+          final int colonIdx = line.indexOf(':');
+          if (colonIdx > 0) {
+            day = line.substring(0, colonIdx).trim();
+            time = line.substring(colonIdx).trim();
+          }
+        }
+      }
+
+      children.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 100,
+                child: Text(day, style: const TextStyle(fontWeight: FontWeight.w500)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text(time)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  
+
   // Detail Page UI (Matching the provided image)
   Widget _buildDetailPage() {
     if (selectedTaskData == null) return const SizedBox();
@@ -162,6 +233,11 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
     
     final String dueDate = task['dueDate'] ?? task['duedate'] ?? '';
     final String time = task['time'] ?? '';
+    final String businesshour = selectedTaskComponents.isNotEmpty 
+        ? (selectedTaskComponents.first['business_hour'] ?? '')
+        : '';
+
+    // Keep date & time unchanged
     final String contact = task['user_id']?.toString() ?? '+012 345 6789';
     final String paymentType = task['paymentType'] ?? 'cash';
     final String paymentStatus = task['paymentStatus'] ?? 'pending';
@@ -239,7 +315,13 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                     children: [
                       _buildDetailRow('destination', workshopName),
                       _buildDetailRowWithLocation('location', pickupLocation),
-                      _buildDetailRow('date & time', '$dueDate $time'),
+                      _buildDetailRow('date', dueDate),
+                      _buildDetailRow('time', time),
+                      if (businesshour.isNotEmpty) ...[
+                        const Text('business hour', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        _buildBusinessHourBox(businesshour),
+                      ],
                       _buildDetailRow('item quantity', 'QTY: ${selectedTaskComponents.fold<int>(0, (sum, c) => sum + (int.tryParse(c['qty']?.toString() ?? '0') ?? 0))}'),
                       
                       const SizedBox(height: 16),

@@ -28,7 +28,8 @@ class DatabaseTest {
                 name,
                 qty,
                 workshop,
-                destination
+                destination,
+                business_hour
               )
             )
           ''')
@@ -75,7 +76,8 @@ class DatabaseTest {
               date,
               time,
               destination,
-              workshop
+              workshop,
+              business_hour
             )
           ''')
           .eq('taskDeliver_id', taskId)
@@ -99,6 +101,7 @@ class DatabaseTest {
             'time': component['time'],
             'destination': component['destination'],
             'workshop': component['workshop'],
+            'business_hour': component['business_hour'],
             'task_id': taskId,
           });
         }
