@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../controller/user_controller.dart';
 import '../widgets/app_bottom_nav.dart';
+import 'history.dart';
 
 class ProfilePage extends StatefulWidget {
   final String userName;
@@ -93,6 +94,15 @@ class _ProfilePageState extends State<ProfilePage> {
             label: 'History',
             onTap: () {
               debugPrint('Go to history for userId: ${widget.userId}');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HistoryPage(
+                    userId: widget.userId,
+                    taskId: 0, // 如果要抓全部 task 可以改成 null 或 0
+                  ),
+                ),
+              );
             },
           ),
           _ListTile(

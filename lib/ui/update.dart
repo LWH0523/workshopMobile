@@ -4,7 +4,6 @@ import '../controller/updateController.dart';
 import '../database/updateDB.dart';
 import 'ListPageSchedule.dart';
 import 'Profile.dart';
-import 'confirmation.dart';
 
 class SetRoutePage extends StatefulWidget {
   final int? userId;
@@ -63,7 +62,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
 
     if (data != null && data.isNotEmpty) {
       setState(() {
-        tasks = data; // data 應該只包含選定 task
+        tasks = data; // data only include specific task
         print("fetched task for taskId=${widget.taskId}: $tasks");
 
         status = tasks.first['status'] ?? "pending";
@@ -182,7 +181,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
                           : "https://idximjrqcfioksobtulx.supabase.co/storage/v1/object/public/updateStatus/hugeicons--package-delivered.png",
                       width: 45,
                       height: 45,
-                      color: status == "pending" || status == "picked up"
+                      color: status == "pending" || status == "picked up" || status == "enroute"
                           ? const Color(0xFFA0CFFF)
                           : (status == "rejected" ? null : Colors.white),
                     ),
@@ -251,7 +250,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
           ),
 
           // 按鈕區域
-          if (status != "delivered" && status != "rejected")
+          if (status != "delivered" && status != "rejected" && status != "enroute")
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: SizedBox(
@@ -278,32 +277,36 @@ class _SetRoutePageState extends State<SetRoutePage> {
                         }
                       });
 
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ConfirmationPage(),
-                        ),
-                      );
-
-                      final hasConfirmation = await updateController.checkSignatureOrImage(widget.userId!, widget.taskId!);
-
-                      String finalStatus;
-                      if (hasConfirmation) {
-                        finalStatus = "delivered";
-                        showStatusDialog(context, "Delivered Successful", isSuccess: true);
-                      } else {
-                        finalStatus = "rejected";
-                        showStatusDialog(context, "Delivery has been Rejected", isSuccess: false);
+                      final success = await updateController.updateStatus(widget.userId!, widget.taskId!, nextStatus);
+                      if (!success) {
+                        showStatusDialog(context, "Failed to update status in database", isSuccess: false);
+                        return;
                       }
 
-                      final success = await updateController.updateStatus(widget.userId!, widget.taskId!, finalStatus);
-                      if (success && mounted) {
-                        setState(() {
-                          status = finalStatus;
-                          for (var task in tasks) {
-                            task['status'] = finalStatus;
-                          }
-                        });
+                      showStatusDialog(context, "Enroute Successful", isSuccess: true);
+                      await Future.delayed(const Duration(seconds: 2));
+
+                      Future<void> checkDeliveryStatus() async {
+                        final hasConfirmation = await updateController.checkSignatureOrImage(widget.userId!, widget.taskId!);
+
+                        String finalStatus;
+                        if (hasConfirmation) {
+                          finalStatus = "delivered";
+                          showStatusDialog(context, "Delivered Successful", isSuccess: true);
+                        } else {
+                          finalStatus = "rejected";
+                          showStatusDialog(context, "Delivery has been Rejected", isSuccess: false);
+                        }
+
+                        final success = await updateController.updateStatus(widget.userId!, widget.taskId!, finalStatus);
+                        if (success && mounted) {
+                          setState(() {
+                            status = finalStatus;
+                            for (var task in tasks) {
+                              task['status'] = finalStatus;
+                            }
+                          });
+                        }
                       }
                     } else {
                       final success = await updateController.updateStatus(widget.userId!, widget.taskId!, nextStatus);

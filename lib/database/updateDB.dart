@@ -53,11 +53,10 @@ class UpdateService {
           // only have signature/image then only update
           if ((task['signature'] != null && task['signature']!.isNotEmpty) ||
               (task['image'] != null && task['image']!.isNotEmpty)) {
-            idsToUpdate.add(task['id']!);
+            idsToUpdate.add(task['id'].toString());
           }
         } else {
-          // other status not need to check
-          idsToUpdate.add(task['id']!);
+          idsToUpdate.add(task['id'].toString());
         }
       }
 
