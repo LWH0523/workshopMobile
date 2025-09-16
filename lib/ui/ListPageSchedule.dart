@@ -215,6 +215,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
                     final statusColor = _controller.getStatusColor(displayStatus);
 
                     return _ScheduleCard(
+                      key: PageStorageKey('task_${task['id']}'),
                       id: task['id'] as int,
                       userId: task['user_id'] as int,
                       workshop: task['workshop'] ?? '',
@@ -275,6 +276,7 @@ class _ScheduleCard extends StatefulWidget {
   final Color statusColor;
 
   const _ScheduleCard({
+    super.key,
     required this.id,
     required this.userId,
     required this.workshop,
@@ -291,8 +293,16 @@ class _ScheduleCard extends StatefulWidget {
 }
 
 class _ScheduleCardState extends State<_ScheduleCard> {
-  String? _selectedComponent;
   bool _componentsExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final stored = PageStorage.of(context)?.readState(context, identifier: 'componentsExpanded');
+    if (stored is bool) {
+      _componentsExpanded = stored;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -335,7 +345,9 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => SetRoutePage(userId: widget.userId)),
+                      MaterialPageRoute(
+                        builder: (_) => SetRoutePage(userId: widget.userId, taskId: widget.id),
+                      ),
                     );
                   },
                   child: Container(
@@ -412,6 +424,7 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                     Text(widget.dateTime),
                   ],
                 ),
+                // Always keep the first row (icon + first component + chevron) at the same position.
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -419,12 +432,7 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                         size: 18, color: Colors.black54),
                     const SizedBox(width: 6),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (final n in _displayNames) Text(n),
-                        ],
-                      ),
+                      child: Text(_allNames.isNotEmpty ? _allNames.first : ''),
                     ),
                     IconButton(
                       iconSize: 18,
@@ -438,10 +446,30 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                         setState(() {
                           _componentsExpanded = !_componentsExpanded;
                         });
+                        PageStorage.of(context)?.writeState(
+                          context,
+                          _componentsExpanded,
+                          identifier: 'componentsExpanded',
+                        );
                       },
                     ),
                   ],
                 ),
+                if (_componentsExpanded && _allNames.length > 1) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(left: 24), // align under text after icon+spacing
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (int i = 1; i < _allNames.length; i++) 
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: Text(i == 3 ? '...' : _allNames[i]),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           )
