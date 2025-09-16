@@ -12,7 +12,15 @@ class ListPageScheduleController {
 
   // 獲取今天的訂單
   Future<List<Map<String, dynamic>>?> fetchTodayTaskDeliverDetails({int? userId}) async {
-    return await scheduleService.getTodayTaskDeliverDetails(userId: userId);
+    final todayTasks = await scheduleService.getTodayTaskDeliverDetails(userId: userId);
+    if (todayTasks == null) return null;
+
+    // 只返回今天且狀態為pending的任務
+    return todayTasks.where((task) {
+      final status = task['status'] as String?;
+      final displayStatus = getDisplayStatus(status);
+      return displayStatus == 'Pending';
+    }).toList();
   }
 
   // 獲取待處理的訂單數量 (根據 getDisplayStatus 判斷)
