@@ -24,6 +24,8 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
   bool _isTodaySelected = false;
   String _userName = 'Kitty'; // 默認名稱
   int _bottomIndex = 0;
+  // Future 視圖的狀態過濾：all/pending/complete
+  String _futureFilter = 'all';
 
   @override
   void initState() {
@@ -149,13 +151,15 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
             ),
           ),
           const SizedBox(height: 12),
-          // Summary pill
+          // Summary pill + filter
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: FutureBuilder<int>(
               future: _isTodaySelected
                   ? _controller.getTodayPendingDeliveriesCount(userId: widget.userId)
-                  : _controller.getPendingDeliveriesCount(userId: widget.userId),
+                  : (_futureFilter == 'complete'
+                      ? _controller.getCompleteDeliveriesCount(userId: widget.userId)
+                      : _controller.getPendingDeliveriesCount(userId: widget.userId)),
               builder: (context, snapshot) {
                 final int count = snapshot.data ?? 0;
                 return Container(
@@ -167,28 +171,117 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
                     color: const Color(0xFFE9EFFD),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(color: Color(0xFF2A2E3B)),
-                      children: [
-                        const TextSpan(text: 'You have '),
-                        TextSpan(text: '$count deliveries '),
-                        TextSpan(
-                          text: _isTodaySelected ? 'Today' : 'Future',
-                          style: const TextStyle(
-                            color: Color(0xFF2D4CC8),
-                            fontWeight: FontWeight.w700,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: RichText(
+                          text: TextSpan(
+                            style: const TextStyle(color: Color(0xFF2A2E3B)),
+                            children: [
+                              const TextSpan(text: 'You have '),
+                              TextSpan(text: '$count deliveries '),
+                              TextSpan(
+                                text: _isTodaySelected ? 'Today' : 'Future',
+                                style: const TextStyle(
+                                  color: Color(0xFF2D4CC8),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      if (!_isTodaySelected)
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            hoverColor: Colors.transparent,
+                            popupMenuTheme: const PopupMenuThemeData(
+                              color: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(32)),
+                              ),
+                            ),
+                          ),
+                          child: PopupMenuButton<String>(
+                            icon: const Icon(Icons.menu, color: Color(0xFF2D4CC8)),
+                            elevation: 0,
+                            color: Color(0xFFE9EFFD),
+                            offset: const Offset(30, 50),
+                            constraints: const BoxConstraints(minWidth: 150),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            onSelected: (value) {
+                              setState(() => _futureFilter = value);
+                            },
+                            itemBuilder: (context) => <PopupMenuEntry<String>>[
+                              PopupMenuItem<String>(
+                                value: 'all',
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Center(
+                                      child: Text(
+                                        'All',
+                                        style: TextStyle(
+                                          color: Color(0xFF2D4CC8),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 12),
+                                    Divider(height: 1, thickness: 1, color: Color(0xFF2D4CC8)),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'pending',
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Center(
+                                      child: Text(
+                                        'Pending',
+                                        style: TextStyle(
+                                          color: Color(0xFF2D4CC8),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 12),
+                                    Divider(height: 1, thickness: 1, color: Color(0xFF2D4CC8)),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'complete',
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                child: const Center(
+                                  child: Text(
+                                    'Complete',
+                                    style: TextStyle(
+                                      color: Color(0xFF2D4CC8),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                 );
               },
             ),
           ),
           const SizedBox(height: 8),
-          // List of cards
+          // List of cards (apply filter for Future view)
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>?>(
               future: _isTodaySelected
@@ -205,7 +298,15 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
                           : 'No deliveries'));
                 }
 
-                final List<Map<String, dynamic>> tasks = snapshot.data!;
+                List<Map<String, dynamic>> tasks = List<Map<String, dynamic>>.from(snapshot.data!);
+                if (!_isTodaySelected && _futureFilter != 'all') {
+                  tasks = tasks.where((task) {
+                    final displayStatus = _controller.getDisplayStatus(task['status'] as String?);
+                    if (_futureFilter == 'pending') return displayStatus == 'Pending';
+                    if (_futureFilter == 'complete') return displayStatus == 'Complete';
+                    return true;
+                  }).toList();
+                }
                 return ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemBuilder: (context, index) {

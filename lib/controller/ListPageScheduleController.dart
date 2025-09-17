@@ -39,6 +39,22 @@ class ListPageScheduleController {
     return count;
   }
 
+  // 獲取完成的訂單數量 (顯示狀態為 Complete)
+  Future<int> getCompleteDeliveriesCount({int? userId}) async {
+    final allTasks = await scheduleService.getTaskDeliverDetails(userId: userId);
+    if (allTasks == null) return 0;
+
+    int count = 0;
+    for (var task in allTasks) {
+      final status = task['status'] as String?;
+      final displayStatus = getDisplayStatus(status);
+      if (displayStatus == 'Complete') {
+        count++;
+      }
+    }
+    return count;
+  }
+
   // 獲取今天待處理的訂單數量
   Future<int> getTodayPendingDeliveriesCount({int? userId}) async {
     final todayTasks = await scheduleService.getTodayTaskDeliverDetails(userId: userId);
