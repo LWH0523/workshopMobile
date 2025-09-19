@@ -143,6 +143,7 @@ class DatabaseTest {
             time, 
             user_id, 
             signature,
+            image,
             paymentType,
             paymentStatus,
             messageOfDeliver,
@@ -156,7 +157,8 @@ class DatabaseTest {
                 date,
                 time,
                 destination,
-                workshop
+                workshop,
+                business_hour
               )
             )
           ''')

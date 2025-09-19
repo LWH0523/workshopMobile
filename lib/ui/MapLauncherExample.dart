@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
 import '../controller/detailController.dart';
 
 class MapLauncherExample extends StatefulWidget {
@@ -202,6 +203,112 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
     );
   }
 
+  Widget _buildSignatureImageRow(String? signature, String? image) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Signature column
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'signature',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                if (signature != null && signature.isNotEmpty && signature != 'NULL')
+                  Container(
+                    height: 100,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.memory(
+                        base64Decode(signature),
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Text('Invalid signature data'),
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    height: 100,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text('No signature'),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Image column
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'image',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                if (image != null && image.isNotEmpty && image != 'NULL')
+                  Container(
+                    height: 100,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.memory(
+                        base64Decode(image),
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Text('Invalid image data'),
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    height: 100,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text('No image'),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   
 
   // Detail Page UI (Matching the provided image)
@@ -242,6 +349,8 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
     final String paymentType = task['paymentType'] ?? 'cash';
     final String paymentStatus = task['paymentStatus'] ?? 'pending';
     final String message = task['messageOfDeliver'] ?? 'none';
+    final String? signature = task['signature'];
+    final String? image = task['image'];
 
     return SingleChildScrollView(
       child: Column(
@@ -440,6 +549,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                       _buildDetailRow('payment type', paymentType),
                       _buildDetailRow('payment status', paymentStatus),
                       _buildDetailRow('message for deliver', message),
+                      _buildSignatureImageRow(signature, image),
                     ],
                   ),
                 ),
