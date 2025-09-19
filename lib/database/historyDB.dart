@@ -33,18 +33,24 @@ class HistoryService {
           } catch (_) {}
         }
 
-        //condition 1: already delivered/rejected
+        // condition 1: already delivered/rejected
         if (status == 'delivered' || status == 'rejected') {
           filtered.add(item);
-        } else if (dueDate != null && dueDate.isBefore(now)) {
-          // time out update database
-          await _client
-              .from('taskDeliver')
-              .update({'status': 'time out'})
-              .eq('id', item['id']);
+        } else if (dueDate != null) {
+          final today = DateTime(now.year, now.month, now.day);
+          final dueOnlyDate =
+          DateTime(dueDate.year, dueDate.month, dueDate.day);
 
-          item['status'] = 'time out';
-          filtered.add(item);
+          if (dueOnlyDate.isBefore(today)) {
+            // time out update database
+            await _client
+                .from('taskDeliver')
+                .update({'status': 'time out'})
+                .eq('id', item['id']);
+
+            item['status'] = 'time out';
+            filtered.add(item);
+          }
         }
       }
 

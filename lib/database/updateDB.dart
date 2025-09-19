@@ -65,7 +65,7 @@ class UpdateService {
       await _client
           .from('taskDeliver')
           .update({'status': status})
-          .filter('id', 'in', idsToUpdate);
+          .eq('id', taskId);
 
       return true;
     } catch (e) {
