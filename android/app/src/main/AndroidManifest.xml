@@ -1,5 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Permission to make phone calls -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- Permission to dial phone numbers (safer alternative) -->
+    <uses-permission android:name="android.permission.CALL_PRIVILEGED" />
+
     <application
         android:label="testapi"
         android:name="${applicationName}"
@@ -48,6 +53,16 @@
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="geo" />
+        </intent>
+
+        <!-- Allow tel URI detection for phone calls -->
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+            <data android:scheme="tel" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.CALL" />
+            <data android:scheme="tel" />
         </intent>
     </queries>
 

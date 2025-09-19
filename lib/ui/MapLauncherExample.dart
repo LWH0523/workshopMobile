@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import '../controller/detailController.dart';
@@ -309,43 +310,43 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
     );
   }
 
-  
+
 
   // Detail Page UI (Matching the provided image)
   Widget _buildDetailPage() {
     if (selectedTaskData == null) return const SizedBox();
-    
+
     final task = selectedTaskData!;
-    final String workshopName = selectedTaskComponents.isNotEmpty 
-        ? (selectedTaskComponents.first['workshop'] ?? 'Unknown Workshop') 
+    final String workshopName = selectedTaskComponents.isNotEmpty
+        ? (selectedTaskComponents.first['workshop'] ?? 'Unknown Workshop')
         : 'Unknown Workshop';
-    
+
     // Debug: Print component data
     print("🔍 DEBUG: Selected task components: ${selectedTaskComponents.length}");
     for (int i = 0; i < selectedTaskComponents.length; i++) {
       print("🔍 DEBUG: Component $i: ${selectedTaskComponents[i]}");
     }
-    
+
     // Pickup location: Use component's destination (from component table)
     // If no components or no component destination, show a placeholder
-    final String pickupLocation = selectedTaskComponents.isNotEmpty 
+    final String pickupLocation = selectedTaskComponents.isNotEmpty
         ? (selectedTaskComponents.first['destination'] ?? 'Component destination not available')
         : 'No components found';
-    
+
     // Shipping location: Use task's destination (from taskDeliver table)
     final String shippingLocation = task['destination'] ?? 'Task destination not available';
-    
+
     print("🔍 DEBUG: Pickup location: $pickupLocation");
     print("🔍 DEBUG: Shipping location: $shippingLocation");
-    
+
     final String dueDate = task['dueDate'] ?? task['duedate'] ?? '';
     final String time = task['time'] ?? '';
-    final String businesshour = selectedTaskComponents.isNotEmpty 
+    final String businesshour = selectedTaskComponents.isNotEmpty
         ? (selectedTaskComponents.first['business_hour'] ?? '')
         : '';
 
-    // Keep date & time unchanged
-    final String contact = task['user_id']?.toString() ?? '+012 345 6789';
+    // Get contact number from taskDeliver table
+    final String contact = task['contact_number']?.toString() ?? task['user_id']?.toString() ?? '+012 345 6789';
     final String paymentType = task['paymentType'] ?? 'cash';
     final String paymentStatus = task['paymentStatus'] ?? 'pending';
     final String message = task['messageOfDeliver'] ?? 'none';
@@ -410,13 +411,13 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                   child: const Text(
                     'pick up detail',
                     style: TextStyle(
-                        color: Color(0xFF2D4CC8),
+                      color: Color(0xFF2D4CC8),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                
+
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -432,14 +433,14 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                         _buildBusinessHourBox(businesshour),
                       ],
                       _buildDetailRow('item quantity', 'QTY: ${selectedTaskComponents.fold<int>(0, (sum, c) => sum + (int.tryParse(c['qty']?.toString() ?? '0') ?? 0))}'),
-                      
+
                       const SizedBox(height: 16),
                       const Text(
                         'item details:',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      
+
                       // Item Details Table
                       if (selectedTaskComponents.isNotEmpty) ...[
                         Container(
@@ -517,7 +518,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: const BoxDecoration(
-    color: Colors.white,
+                    color: Colors.white,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(12),
                       topRight: Radius.circular(12),
@@ -538,14 +539,14 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                     ],
                   ),
                 ),
-                
+
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildDetailRowWithLocation('shipping to', shippingLocation),
-                      _buildDetailRow('contact', contact),
+                      _buildDetailRowWithPhone('contact', contact),
                       _buildDetailRow('payment type', paymentType),
                       _buildDetailRow('payment status', paymentStatus),
                       _buildDetailRow('message for deliver', message),
@@ -556,7 +557,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 20),
         ],
       ),
@@ -599,6 +600,83 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
           IconButton(
             icon: const Icon(Icons.location_on, color: Colors.blue),
             onPressed: () => _openGoogleMaps(value),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRowWithPhone(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(child: Text(value)),
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: IconButton(
+              icon: const Icon(Icons.phone, color: Colors.blue),
+              onPressed: () async {
+              try {
+                // 清理電話號碼，移除空格和特殊字符
+                String cleanPhoneNumber = value.replaceAll(RegExp(r'[^\d+]'), '');
+                print("🔍 DEBUG: Original phone number: $value");
+                print("🔍 DEBUG: Clean phone number: $cleanPhoneNumber");
+                
+                // 使用tel scheme打開撥號器
+                final Uri phoneUri = Uri(scheme: 'tel', path: cleanPhoneNumber);
+                print("🔍 DEBUG: Phone URI: $phoneUri");
+                
+                // 檢查是否可以啟動URL
+                final bool canLaunch = await canLaunchUrl(phoneUri);
+                print("🔍 DEBUG: Can launch URL: $canLaunch");
+                
+                if (canLaunch) {
+                  await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
+                  print("🔍 DEBUG: Successfully launched dialer");
+                } else {
+                  // 嘗試使用DIAL action作為備選方案
+                  print("🔍 DEBUG: Trying alternative dial method...");
+                  final Uri dialUri = Uri(scheme: 'tel', path: cleanPhoneNumber);
+                  try {
+                    await launchUrl(dialUri);
+                    print("🔍 DEBUG: Alternative method succeeded");
+                  } catch (e) {
+                    print("🔍 DEBUG: Alternative method failed: $e");
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('無法打開撥號器。請檢查權限設置。\n錯誤: $e'),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                    }
+                  }
+                }
+              } catch (e) {
+                // 處理異常
+                print("🔍 DEBUG: Exception occurred: $e");
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('撥號失敗: $e'),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                }
+              }
+            },
+            ),
           ),
         ],
       ),

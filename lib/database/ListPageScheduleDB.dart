@@ -7,7 +7,7 @@ class ListPageScheduleService {
     try {
       final query = _client
           .from('taskDeliver')
-          .select('id, component_id, user_id, quantity, destination, dueDate, time, status, task_deliver_component(component(name, workshop)), component(name, workshop)');
+          .select('id, component_id, user_id, quantity, destination, dueDate, time, status, contact_number, task_deliver_component(component(name, workshop)), component(name, workshop)');
 
       final response = userId != null ? await query.eq('user_id', userId) : await query;
       
@@ -44,6 +44,7 @@ class ListPageScheduleService {
           'duedate': item['dueDate']?.toString() ?? '',
           'time': item['time']?.toString() ?? '',
           'status': item['status']?.toString() ?? '',
+          'contact_number': item['contact_number'],
           'component_name': componentNames.isNotEmpty ? componentNames.first : '',
           'component_names': componentNames,
           'workshop': workshop,
@@ -79,7 +80,7 @@ class ListPageScheduleService {
 
       final query = _client
           .from('taskDeliver')
-          .select('id, component_id, user_id, quantity, destination, dueDate, time, status, task_deliver_component(component(name, workshop)), component(name, workshop)')
+          .select('id, component_id, user_id, quantity, destination, dueDate, time, status, contact_number, task_deliver_component(component(name, workshop)), component(name, workshop)')
           .eq('dueDate', today);
 
       final response = userId != null ? await query.eq('user_id', userId) : await query;
@@ -119,6 +120,7 @@ class ListPageScheduleService {
           'duedate': item['dueDate']?.toString() ?? '',
           'time': item['time']?.toString() ?? '',
           'status': item['status']?.toString() ?? '',
+          'contact_number': item['contact_number'],
           'component_name': componentNames.isNotEmpty ? componentNames.first : '',
           'component_names': componentNames,
           'workshop': workshop,
