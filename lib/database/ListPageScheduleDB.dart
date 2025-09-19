@@ -10,6 +10,12 @@ class ListPageScheduleService {
           .select('id, component_id, user_id, quantity, destination, dueDate, time, status, task_deliver_component(component(name, workshop)), component(name, workshop)');
 
       final response = userId != null ? await query.eq('user_id', userId) : await query;
+      
+      // 調試：打印所有日期
+      print('🔍 All dates in DB:');
+      for (var item in response) {
+        print('  - ID: ${item['id']}, dueDate: ${item['dueDate']}, user_id: ${item['user_id']}');
+      }
 
       final List<Map<String, dynamic>> data =
       (response as List).map((item) {
@@ -57,6 +63,19 @@ class ListPageScheduleService {
       // 獲取今天的日期 (YYYY-MM-DD 格式)
       final DateTime now = DateTime.now();
       final String today = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      
+      print('🔍 Current date: ${now.year}-${now.month}-${now.day}');
+      print('🔍 Today filter: $today, userId: $userId');
+      
+      // 先查詢所有記錄看看數據庫中有什麼
+      final allQuery = _client
+          .from('taskDeliver')
+          .select('id, dueDate, user_id, status');
+      final allResponse = userId != null ? await allQuery.eq('user_id', userId) : await allQuery;
+      print('🔍 All records in DB:');
+      for (var item in allResponse) {
+        print('  - ID: ${item['id']}, dueDate: ${item['dueDate']}, userId: ${item['user_id']}, status: ${item['status']}');
+      }
 
       final query = _client
           .from('taskDeliver')
@@ -64,6 +83,14 @@ class ListPageScheduleService {
           .eq('dueDate', today);
 
       final response = userId != null ? await query.eq('user_id', userId) : await query;
+      
+      print('🔍 Today query result count: ${(response as List).length}');
+      print('🔍 Today query SQL: SELECT * FROM taskDeliver WHERE dueDate = $today${userId != null ? ' AND user_id = $userId' : ''}');
+      
+      // 打印查詢結果的詳細信息
+      for (var item in response) {
+        print('🔍 Found today task: ID=${item['id']}, dueDate=${item['dueDate']}, userId=${item['user_id']}, status=${item['status']}');
+      }
 
       final List<Map<String, dynamic>> data =
       (response as List).map((item) {

@@ -7,20 +7,59 @@ class ListPageScheduleController {
   ListPageScheduleController(this.scheduleService);
 
   Future<List<Map<String, dynamic>>?> fetchTaskDeliverDetails({int? userId}) async {
-    return await scheduleService.getTaskDeliverDetails(userId: userId);
+    final allTasks = await scheduleService.getTaskDeliverDetails(userId: userId);
+    if (allTasks == null) return null;
+
+    // 計算未來兩天的日期範圍（不包括今天）
+    final DateTime now = DateTime.now();
+    final DateTime nowDate = DateTime(now.year, now.month, now.day);
+    final DateTime dayAfterTomorrow = now.add(const Duration(days: 2));
+    final DateTime threeDaysLater = now.add(const Duration(days: 3));
+
+    print('🔍 Schedule filter: Today=${nowDate.day}/${nowDate.month}, Showing tasks from ${nowDate.add(const Duration(days: 1)).day}/${nowDate.add(const Duration(days: 1)).month} to ${dayAfterTomorrow.day}/${dayAfterTomorrow.month}');
+
+    final futureTasks = allTasks.where((task) {
+      final taskDate = task['duedate'] as String?;
+      if (taskDate == null) return false;
+      
+      try {
+        final DateTime taskDateTime = DateTime.parse(taskDate);
+        final DateTime taskDateOnly = DateTime(taskDateTime.year, taskDateTime.month, taskDateTime.day);
+        
+        // 只顯示明天和後天的任務（不包括今天，不包括3天後）
+        final bool isInRange = taskDateOnly.isAfter(nowDate) && taskDateOnly.isBefore(threeDaysLater);
+        print('🔍 Task ${task['id']}: taskDate=$taskDate, nowDate=${nowDate.year}-${nowDate.month}-${nowDate.day}, isInRange=$isInRange');
+        
+        return isInRange;
+      } catch (e) {
+        print('🔍 Date parse error for task ${task['id']}: $e, date: $taskDate');
+        return false;
+      }
+    }).toList();
+
+    print('🔍 Schedule: Found ${allTasks.length} total tasks, filtered to ${futureTasks.length} tasks for next 2 days');
+    return futureTasks;
   }
 
   // 獲取今天的訂單
   Future<List<Map<String, dynamic>>?> fetchTodayTaskDeliverDetails({int? userId}) async {
     final todayTasks = await scheduleService.getTodayTaskDeliverDetails(userId: userId);
-    if (todayTasks == null) return null;
+    if (todayTasks == null) {
+      print('🔍 fetchTodayTaskDeliverDetails: todayTasks is null');
+      return null;
+    }
 
-    // 只返回今天且狀態為pending的任務
-    return todayTasks.where((task) {
+    print('🔍 fetchTodayTaskDeliverDetails: Found ${todayTasks.length} tasks for today');
+    
+    // 打印所有任務的狀態
+    for (var task in todayTasks) {
       final status = task['status'] as String?;
       final displayStatus = getDisplayStatus(status);
-      return displayStatus == 'Pending';
-    }).toList();
+      print('🔍 Task ${task['id']}: status=$status, displayStatus=$displayStatus');
+    }
+
+    // 返回今天的所有任務（不管是Pending還是Complete）
+    return todayTasks;
   }
 
   // 獲取待處理的訂單數量 (根據 getDisplayStatus 判斷)
