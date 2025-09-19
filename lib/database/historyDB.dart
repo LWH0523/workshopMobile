@@ -6,33 +6,60 @@ class HistoryService {
   Future<List<Map<String, dynamic>>?> getTask(
       {int? userId, int? taskId}) async {
     try {
-      var query = _client
-          .from('taskDeliver')
-          .select('id, component_id, user_id, quantity, destination, dueDate, time, status, signature, image, task_deliver_component(component(name, workshop)), component(name, workshop)');
+      var query = _client.from('taskDeliver').select(
+          'id, component_id, user_id, quantity, destination, dueDate, time, status, signature, image, task_deliver_component(component(name, workshop)), component(name, workshop)');
 
       if (userId != null) {
         query = query.eq('user_id', userId);
-
       }
 
-      // 只有當 taskId 非空且不為 0 時才篩選
       if (taskId != null && taskId != 0) {
         query = query.eq('id', taskId);
       }
 
       final response = await query;
+      final now = DateTime.now();
 
-      final List<Map<String, dynamic>> data =
-      (response as List).map((item) {
+      final filtered = <Map<String, dynamic>>[];
+
+      for (var item in (response as List)) {
+        final status = item['status']?.toString() ?? '';
+        final dueDateStr = item['dueDate']?.toString();
+        DateTime? dueDate;
+
+        if (dueDateStr != null && dueDateStr.isNotEmpty) {
+          try {
+            dueDate = DateTime.parse(dueDateStr);
+          } catch (_) {}
+        }
+
+        //condition 1: already delivered/rejected
+        if (status == 'delivered' || status == 'rejected') {
+          filtered.add(item);
+        } else if (dueDate != null && dueDate.isBefore(now)) {
+          // time out update database
+          await _client
+              .from('taskDeliver')
+              .update({'status': 'time out'})
+              .eq('id', item['id']);
+
+          item['status'] = 'time out';
+          filtered.add(item);
+        }
+      }
+
+      final List<Map<String, dynamic>> data = filtered.map((item) {
         final List components = (item['task_deliver_component'] as List?) ?? [];
         final List<String> componentNames = components
             .map((c) => c['component']?['name']?.toString() ?? '')
             .where((e) => e.isNotEmpty)
             .cast<String>()
             .toList();
+
         final String workshop = components.isNotEmpty
             ? (components.first['component']?['workshop']?.toString() ?? '')
             : (item['component']?['workshop']?.toString() ?? '');
+
         if (componentNames.isEmpty && item['component'] != null) {
           final fallbackName = item['component']?['name']?.toString();
           if (fallbackName != null && fallbackName.isNotEmpty) {
@@ -49,14 +76,17 @@ class HistoryService {
           'duedate': item['dueDate']?.toString() ?? '',
           'time': item['time']?.toString() ?? '',
           'status': item['status']?.toString() ?? '',
-          'component_name': componentNames.isNotEmpty ? componentNames.first : '',
+          'signature': item['signature']?.toString() ?? '',
+          'image': item['image']?.toString() ?? '',
+          'component_name':
+          componentNames.isNotEmpty ? componentNames.first : '',
           'component_names': componentNames,
           'workshop': workshop,
         };
       }).toList();
 
       data.sort((a, b) => a['id'].compareTo(b['id']));
-      print('DB fetched data: $data'); // debug
+      print('DB fetched history data: $data'); // debug
       return data;
     } catch (e) {
       print('Error fetching taskDeliver details: $e');

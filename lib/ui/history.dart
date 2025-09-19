@@ -112,7 +112,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       horizontal: 10, vertical: 3),
                   child: Row(
                     children: [
-                      // 🆔 ID
+                      // ID
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
@@ -157,17 +157,16 @@ class _HistoryPageState extends State<HistoryPage> {
 
                       const Spacer(),
 
-                      // 🔹 三個點，跳去 MapLauncherExample
                       IconButton(
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        icon: const Icon(Icons.more_horiz,
-                            color: Colors.white),
+                        icon: const Icon(Icons.more_horiz, color: Colors.black54),
                         onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => MapLauncherExample(initialTaskId: widget.userId),
+                              builder: (_) =>
+                                  MapLauncherExample(initialTaskId: task['id']),
                             ),
                           );
                         },

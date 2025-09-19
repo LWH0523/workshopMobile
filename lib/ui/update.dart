@@ -10,6 +10,7 @@ import 'package:testapi/widgets/SignaturePhotoWidget.dart';
 import '../controller/updateController.dart';
 import '../database/updateDB.dart';
 import 'ListPageSchedule.dart';
+import 'MapLauncherExample.dart';
 import 'Profile.dart';
 // import 'package:mobile_assignment/ui/SignaturePhotoWidget.dart';
 
@@ -85,11 +86,11 @@ class _SetRoutePageState extends State<SetRoutePage> {
 
     final data = await updateController.fetchTaskDeliverDetails(
       userId: widget.userId!,
-      taskId: widget.taskId!, // 傳入選定的 taskId
+      taskId: widget.taskId!,
     );
 
     if (data != null && data.isNotEmpty) {
-      // 处理 signature / image 字段
+      // signature / image
       for (var task in data) {
         if (task['signature'] != null && task['signature'] is String) {
           try {
@@ -112,7 +113,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
       }
 
       setState(() {
-        tasks = data; // now tasks 里 signature / image 已经是 Uint8List
+        tasks = data; // now tasks signature / image already is Uint8List
         print("fetched task for taskId=${widget.taskId}: $tasks");
 
         status = tasks.first['status'] ?? "pending";
@@ -272,7 +273,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
                         ? tasks.length + 1
                         : tasks.length,
                     itemBuilder: (context, index) {
-                      // 在 enroute 或 delivered 状态下，最后一个 item 是 SignaturePhotoWidget + 预览
+                      // enroute / delivered status，last item is SignaturePhotoWidget + preview
                       if ((status == 'enroute' ||
                               status == 'delivered' ||
                               status == 'rejected') &&
@@ -293,6 +294,9 @@ class _SetRoutePageState extends State<SetRoutePage> {
                                 imageData: previewTask?['image'],
                                 userId: widget.userId,
                                 taskId: widget.taskId,
+                                status: status,
+                                reasonOfRejected:
+                                previewTask?['reasonOfRejected'],
                                 onSignatureSaved: (signature) async {
                                   if (signature != null &&
                                       signature.isNotEmpty) {
@@ -390,49 +394,71 @@ class _SetRoutePageState extends State<SetRoutePage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          title: Text(
-                            task['component_name'] ?? '',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Column(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 6),
-                              Text(task['workshop'] ?? ''),
-                              const SizedBox(height: 6),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Icon(
-                                    Icons.location_on,
-                                    color: Colors.black54,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      task['destination'] ?? '',
-                                      style: const TextStyle(fontSize: 14),
+                              // 左邊內容 (title + subtitle)
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      task['component_name'] ?? '',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 6),
+                                    Text(task['workshop'] ?? ''),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on,
+                                          color: Colors.black54,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            task['destination'] ?? '',
+                                            style: const TextStyle(fontSize: 14),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.calendar_today,
+                                          color: Colors.black54,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(formattedDateTime),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.calendar_today,
-                                    color: Colors.black54,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(formattedDateTime),
-                                ],
+                              IconButton(
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                icon: const Icon(Icons.more_horiz, color: Colors.black54),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          MapLauncherExample(initialTaskId: widget.taskId),
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),
