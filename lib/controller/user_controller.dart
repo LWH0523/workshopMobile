@@ -16,14 +16,14 @@ class UserController {
       final existing = await _userService.getUserById(userId);
 
       if (existing != null) {
-        print('⚠️ User $userId already exists, skipping insert');
+        print('User $userId already exists, skipping insert');
         return;
       }
 
       await _userService.insertUser(userId, 'DeliveryPerson_$userId');
-      print('✅ User $userId has been successfully inserted into Supabase');
+      print('User $userId has been successfully inserted into Supabase');
     } catch (e) {
-      print('❌ Failed to save user data: $e');
+      print('Failed to save user data: $e');
       rethrow;
     }
   }
@@ -36,16 +36,16 @@ class UserController {
   /// Update profile picture
   Future<String> updateProfilePicture(int userId, File imageFile) async {
     try {
-      // 1️⃣ Upload image
+      // 1Upload image
       final imageUrl = await _userService.uploadUserImage(userId, imageFile);
 
-      // 2️⃣ Update user.image field in database
+      // Update user.image field in database
       await _userService.updateUserImage(userId, imageUrl);
 
-      print('✅ User $userId profile picture updated: $imageUrl');
+      print('User $userId profile picture updated: $imageUrl');
       return imageUrl;
     } catch (e) {
-      print('❌ Failed to update profile picture: $e');
+      print('Failed to update profile picture: $e');
       rethrow;
     }
   }

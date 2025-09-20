@@ -24,7 +24,7 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
   }
 
   Future<void> _authenticate() async {
-    debugPrint('🔐 Start fingerprint authentication...');
+    debugPrint('Start fingerprint authentication...');
     try {
       final bool isSupported = await localAuth.isDeviceSupported();
       final bool canCheck = await localAuth.canCheckBiometrics;
@@ -68,7 +68,7 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
           MaterialPageRoute(builder: (_) => ListPageSchedule(userId: userId)),
         );
       } else {
-        debugPrint('⚠️ Authentication failed or canceled');
+        debugPrint('Authentication failed or canceled');
         if (mounted) {
           setState(() {
             _authInProgress = false;
@@ -77,7 +77,7 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
         }
       }
     } catch (e) {
-      debugPrint('❌ Authentication error: $e');
+      debugPrint('Authentication error: $e');
       if (mounted) {
         setState(() {
           _authInProgress = false;

@@ -32,26 +32,26 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
     });
 
     final tasks = await _controller.fetchTaskDeliverDetails();
-    print("🔍 DEBUG: Fetched ${tasks.length} tasks");
+    print("DEBUG: Fetched ${tasks.length} tasks");
 
     final merged = <Map<String, dynamic>>[];
 
     for (final task in tasks) {
-      print("🔍 DEBUG: Processing task ${task['id']}");
-      print("🔍 DEBUG: Task keys: ${task.keys.toList()}");
-      print("🔍 DEBUG: task_deliver_component: ${task['task_deliver_component']}");
+      print("DEBUG: Processing task ${task['id']}");
+      print("DEBUG: Task keys: ${task.keys.toList()}");
+      print("DEBUG: task_deliver_component: ${task['task_deliver_component']}");
 
       List<Map<String, dynamic>> comps = [];
 
       if (task['task_deliver_component'] != null) {
         final taskDeliveryComponents = task['task_deliver_component'] as List? ?? [];
-        print("🔍 DEBUG: Found ${taskDeliveryComponents.length} task_deliver_component entries");
+        print("DEBUG: Found ${taskDeliveryComponents.length} task_deliver_component entries");
 
         for (final tdc in taskDeliveryComponents) {
-          print("🔍 DEBUG: tdc: $tdc");
+          print("DEBUG: tdc: $tdc");
           final component = tdc['component'];
           if (component != null) {
-            print("🔍 DEBUG: Component: $component");
+            print("DEBUG: Component: $component");
             comps.add({
               'id': component['id'],
               'name': component['name'],
@@ -65,12 +65,12 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
       }
 
       if (comps.isEmpty && task['id'] != null) {
-        print("🔍 DEBUG: No components in junction table, trying separate fetch for task ${task['id']}");
+        print("DEBUG: No components in junction table, trying separate fetch for task ${task['id']}");
         comps = await _controller.fetchComponentsByTaskId(task['id']);
-        print("🔍 DEBUG: Separate fetch returned ${comps.length} components");
+        print("DEBUG: Separate fetch returned ${comps.length} components");
       }
 
-      print("🔍 DEBUG: Final components for task ${task['id']}: ${comps.length}");
+      print("DEBUG: Final components for task ${task['id']}: ${comps.length}");
       merged.add({'task': task, 'components': comps});
     }
 
@@ -336,8 +336,8 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
     // Shipping location: Use task's destination (from taskDeliver table)
     final String shippingLocation = task['destination'] ?? 'Task destination not available';
 
-    print("🔍 DEBUG: Pickup location: $pickupLocation");
-    print("🔍 DEBUG: Shipping location: $shippingLocation");
+    print("DEBUG: Pickup location: $pickupLocation");
+    print("DEBUG: Shipping location: $shippingLocation");
 
     final String dueDate = task['dueDate'] ?? task['duedate'] ?? '';
     final String time = task['time'] ?? '';
@@ -654,9 +654,9 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                   final Uri dialUri = Uri(scheme: 'tel', path: cleanPhoneNumber);
                   try {
                     await launchUrl(dialUri);
-                    print("🔍 DEBUG: Alternative method succeeded");
+                    print("DEBUG: Alternative method succeeded");
                   } catch (e) {
-                    print("🔍 DEBUG: Alternative method failed: $e");
+                    print("DEBUG: Alternative method failed: $e");
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -670,7 +670,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                 }
               } catch (e) {
                 // 處理異常
-                print("🔍 DEBUG: Exception occurred: $e");
+                print("DEBUG: Exception occurred: $e");
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

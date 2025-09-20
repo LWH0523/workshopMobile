@@ -22,9 +22,9 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
   final UserController _userController = UserController();
 
   bool _isTodaySelected = false;
-  String _userName = 'Kitty'; // 默認名稱
+  String _userName = 'Kitty'; // Default name
   int _bottomIndex = 0;
-  int _refreshKey = 0; // 用於觸發 FutureBuilder 刷新
+  int _refreshKey = 0; // Used to trigger FutureBuilder refresh
 
   @override
   void initState() {
@@ -32,10 +32,10 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
     _loadUserName();
   }
 
-  // 刷新任務列表
+  // Refresh task list
   Future<void> _refreshTasks() async {
     setState(() {
-      _refreshKey++; // 增加 key 值觸發 FutureBuilder 重新構建
+      _refreshKey++; // Increase key value to trigger FutureBuilder rebuild
     });
   }
 
@@ -82,14 +82,14 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => ProfilePage(
-                      userId: widget.userId!, // ✅ 帶正確的 userId
-                      userName: _userName,    // ✅ 帶正確的 userName
+                      userId: widget.userId!, // Pass correct userId
+                      userName: _userName,    // Pass correct userName
                     ),
                   ),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("User ID 不存在，無法進入 Profile")),
+                  const SnackBar(content: Text("User ID does not exist, cannot open Profile")),
                 );
               }
             },
@@ -199,7 +199,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
           // List of cards
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>?>(
-              key: ValueKey(_refreshKey), // 使用 refreshKey 觸發重新構建
+              key: ValueKey(_refreshKey), // Use refreshKey to trigger rebuild
               future: _isTodaySelected
                   ? _controller.fetchTodayTaskDeliverDetails(userId: widget.userId)
                   : _controller.fetchTaskDeliverDetails(userId: widget.userId),
@@ -238,7 +238,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
                       status: displayStatus,
                       statusColor: statusColor,
                       isTodaySelected: _isTodaySelected,
-                      onRefresh: _refreshTasks, // ✅ 傳 callback
+                      onRefresh: _refreshTasks, // Pass callback
                     );
                   },
                   separatorBuilder: (context, index) => const SizedBox(height: 12),
@@ -271,7 +271,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("User ID 不存在，無法進入 Profile")),
+                const SnackBar(content: Text("User ID does not exist, cannot open Profile")),
               );
             }
           }
@@ -296,7 +296,7 @@ class _ScheduleCard extends StatefulWidget {
   final String status;
   final Color statusColor;
   final bool isTodaySelected;
-  final VoidCallback onRefresh; // ✅ callback
+  final VoidCallback onRefresh;
 
   const _ScheduleCard({
     super.key,
@@ -352,7 +352,6 @@ class _ScheduleCardState extends State<_ScheduleCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🔵 Header 區域
           Container(
             decoration: const BoxDecoration(
               color: Color(0xFF2D4CC8),
@@ -365,7 +364,7 @@ class _ScheduleCardState extends State<_ScheduleCard> {
             child: Row(
               children: [
                 GestureDetector(
-                  // ✅ 修改 onTap 條件
+                  // Updated onTap condition
                   onTap: (widget.isTodaySelected || widget.status != 'Rejected')
                       ? () async {
                     final result = await Navigator.push(
@@ -378,7 +377,7 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                       ),
                     );
                     if (result == true) {
-                      widget.onRefresh(); // ✅ 呼叫父 widget 的 refresh
+                      widget.onRefresh(); // Call parent refresh
                     }
                   }
                       : null,
@@ -438,7 +437,7 @@ class _ScheduleCardState extends State<_ScheduleCard> {
             ),
           ),
 
-          // 🔵 內容區域
+          // 🔵 Content area
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -522,4 +521,3 @@ class _ScheduleCardState extends State<_ScheduleCard> {
     );
   }
 }
-

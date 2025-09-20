@@ -451,7 +451,7 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
               SizedBox(width: 16),
               Flexible(
                 child: ElevatedButton(
-                  onPressed: _status == 'rejected' ? null : _saveSignature,
+                  onPressed: (_status == 'rejected' || _signatureData != null) ? null : _saveSignature,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFBFE1FF),
                   ),
