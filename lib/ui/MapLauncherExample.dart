@@ -627,7 +627,13 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
               onPressed: () async {
               try {
                 // 清理電話號碼，移除空格和特殊字符
-                String cleanPhoneNumber = value.replaceAll(RegExp(r'[^\d+]'), '');
+                String cleanPhoneNumber = value.replaceAll(
+                  RegExp(r'[^\d+]'),
+                  '',
+                );
+                if (!cleanPhoneNumber.startsWith('+')) {
+                  cleanPhoneNumber = '+$cleanPhoneNumber';
+                }
                 print("🔍 DEBUG: Original phone number: $value");
                 print("🔍 DEBUG: Clean phone number: $cleanPhoneNumber");
                 

@@ -24,11 +24,19 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
   bool _isTodaySelected = false;
   String _userName = 'Kitty'; // 默認名稱
   int _bottomIndex = 0;
+  int _refreshKey = 0; // 用於觸發 FutureBuilder 刷新
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
+  }
+
+  // 刷新任務列表
+  Future<void> _refreshTasks() async {
+    setState(() {
+      _refreshKey++; // 增加 key 值觸發 FutureBuilder 重新構建
+    });
   }
 
   Future<void> _loadUserName() async {
@@ -191,6 +199,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
           // List of cards
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>?>(
+              key: ValueKey(_refreshKey), // 使用 refreshKey 觸發重新構建
               future: _isTodaySelected
                   ? _controller.fetchTodayTaskDeliverDetails(userId: widget.userId)
                   : _controller.fetchTaskDeliverDetails(userId: widget.userId),
@@ -229,6 +238,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
                       status: displayStatus,
                       statusColor: statusColor,
                       isTodaySelected: _isTodaySelected,
+                      onRefresh: _refreshTasks, // ✅ 傳 callback
                     );
                   },
                   separatorBuilder: (context, index) => const SizedBox(height: 12),
@@ -247,7 +257,7 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
           setState(() {
             _bottomIndex = index;
           });
-          
+
           if (index == 1) { // Profile icon clicked
             if (widget.userId != null) {
               Navigator.push(
@@ -286,6 +296,7 @@ class _ScheduleCard extends StatefulWidget {
   final String status;
   final Color statusColor;
   final bool isTodaySelected;
+  final VoidCallback onRefresh; // ✅ callback
 
   const _ScheduleCard({
     super.key,
@@ -299,6 +310,7 @@ class _ScheduleCard extends StatefulWidget {
     required this.status,
     required this.statusColor,
     required this.isTodaySelected,
+    required this.onRefresh,
   });
 
   @override
@@ -311,7 +323,8 @@ class _ScheduleCardState extends State<_ScheduleCard> {
   @override
   void initState() {
     super.initState();
-    final stored = PageStorage.of(context)?.readState(context, identifier: 'componentsExpanded');
+    final stored = PageStorage.of(context)
+        ?.readState(context, identifier: 'componentsExpanded');
     if (stored is bool) {
       _componentsExpanded = stored;
     }
@@ -319,13 +332,9 @@ class _ScheduleCardState extends State<_ScheduleCard> {
 
   @override
   Widget build(BuildContext context) {
-    // compute component names and what to display based on expansion
     final List<String> _allNames = (widget.componentNames.isEmpty)
         ? (widget.component.isEmpty ? <String>[] : <String>[widget.component])
         : widget.componentNames;
-    final List<String> _displayNames = _componentsExpanded
-        ? _allNames
-        : (_allNames.isNotEmpty ? <String>[_allNames.first] : <String>[]);
 
     return Container(
       decoration: BoxDecoration(
@@ -343,6 +352,7 @@ class _ScheduleCardState extends State<_ScheduleCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 🔵 Header 區域
           Container(
             decoration: const BoxDecoration(
               color: Color(0xFF2D4CC8),
@@ -355,24 +365,38 @@ class _ScheduleCardState extends State<_ScheduleCard> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: (widget.isTodaySelected && widget.status != 'Rejected') ? () {
-                    Navigator.push(
+                  // ✅ 修改 onTap 條件
+                  onTap: (widget.isTodaySelected || widget.status != 'Rejected')
+                      ? () async {
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => SetRoutePage(userId: widget.userId, taskId: widget.id),
+                        builder: (_) => SetRoutePage(
+                          userId: widget.userId,
+                          taskId: widget.id,
+                        ),
                       ),
                     );
-                  } : null,
+                    if (result == true) {
+                      widget.onRefresh(); // ✅ 呼叫父 widget 的 refresh
+                    }
+                  }
+                      : null,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: widget.status == 'Rejected' ? const Color(0xFFF44336) : Colors.white,
+                      color: widget.status == 'Rejected'
+                          ? const Color(0xFFF44336)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       "T${widget.id}",
                       style: TextStyle(
-                        color: widget.status == 'Rejected' ? Colors.white : const Color(0xFF2D4CC8),
+                        color: widget.status == 'Rejected'
+                            ? Colors.white
+                            : const Color(0xFF2D4CC8),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -380,7 +404,8 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: widget.statusColor,
                     borderRadius: BorderRadius.circular(8),
@@ -388,8 +413,8 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                   child: Text(
                     widget.status,
                     style: TextStyle(
-                      color: (widget.statusColor == const Color(0xFF4CAF50) || 
-                              widget.statusColor == const Color(0xFFF44336))
+                      color: (widget.statusColor == const Color(0xFF4CAF50) ||
+                          widget.statusColor == const Color(0xFFF44336))
                           ? Colors.white
                           : Colors.black,
                       fontWeight: FontWeight.w600,
@@ -402,7 +427,8 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => MapLauncherExample(initialTaskId: widget.id),
+                        builder: (_) =>
+                            MapLauncherExample(initialTaskId: widget.id),
                       ),
                     );
                   },
@@ -411,6 +437,8 @@ class _ScheduleCardState extends State<_ScheduleCard> {
               ],
             ),
           ),
+
+          // 🔵 內容區域
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -438,7 +466,6 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                     Text(widget.dateTime),
                   ],
                 ),
-                // Always keep the first row (icon + first component + chevron) at the same position.
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -446,14 +473,17 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                         size: 18, color: Colors.black54),
                     const SizedBox(width: 6),
                     Expanded(
-                      child: Text(_allNames.isNotEmpty ? _allNames.first : ''),
+                      child:
+                      Text(_allNames.isNotEmpty ? _allNames.first : ''),
                     ),
                     IconButton(
                       iconSize: 18,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       icon: Icon(
-                        _componentsExpanded ? Icons.expand_less : Icons.expand_more,
+                        _componentsExpanded
+                            ? Icons.expand_less
+                            : Icons.expand_more,
                         color: Colors.black54,
                       ),
                       onPressed: () {
@@ -471,7 +501,7 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                 ),
                 if (_componentsExpanded && _allNames.length > 1) ...[
                   Padding(
-                    padding: const EdgeInsets.only(left: 24), // align under text after icon+spacing
+                    padding: const EdgeInsets.only(left: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -492,3 +522,4 @@ class _ScheduleCardState extends State<_ScheduleCard> {
     );
   }
 }
+

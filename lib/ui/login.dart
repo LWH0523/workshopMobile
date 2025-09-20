@@ -24,43 +24,43 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
   }
 
   Future<void> _authenticate() async {
-    debugPrint('🔐 開始指紋驗證流程...');
+    debugPrint('🔐 Start fingerprint authentication...');
     try {
       final bool isSupported = await localAuth.isDeviceSupported();
       final bool canCheck = await localAuth.canCheckBiometrics;
-      debugPrint('設備支援: $isSupported, 可檢查生物辨識: $canCheck');
+      debugPrint('Device supported: $isSupported, Can check biometrics: $canCheck');
 
       bool didAuthenticate = false;
       if (isSupported && canCheck) {
         didAuthenticate = await localAuth.authenticate(
-          localizedReason: '請掃描指紋以繼續',
+          localizedReason: 'Please scan your fingerprint to continue',
           options: const AuthenticationOptions(
             biometricOnly: true,
             stickyAuth: true,
           ),
         );
-        debugPrint('指紋驗證結果: $didAuthenticate');
+        debugPrint('Authentication result: $didAuthenticate');
       }
 
       if (didAuthenticate) {
         final prefs = await SharedPreferences.getInstance();
 
-        // 🔹 生成新的或取得已存在 userId
+        // 🔹 Generate new or get existing userId
         int? userId = prefs.getInt('user_id');
         if (userId == null) {
           userId = 100000 + Random().nextInt(900000);
           await prefs.setInt('user_id', userId);
-          debugPrint('🔧 產生並儲存新的 user_id: $userId');
+          debugPrint('Generated and saved new user_id: $userId');
         } else {
-          debugPrint('✅ 已存在 userId: $userId');
+          debugPrint('Existing user_id found: $userId');
         }
 
-        // 🔹 儲存到資料庫，如果已存在就跳過
+        // 🔹 Save to database (skip if already exists)
         try {
           await UserController().saveAUserData(userId);
-          debugPrint('✅ UserController 已確認 userId $userId 在資料庫中');
+          debugPrint('UserController confirmed userId $userId in database');
         } catch (e) {
-          debugPrint('❌ UserController saveAUserData 失敗: $e');
+          debugPrint('UserController saveAUserData failed: $e');
         }
 
         if (!mounted) return;
@@ -68,20 +68,20 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
           MaterialPageRoute(builder: (_) => ListPageSchedule(userId: userId)),
         );
       } else {
-        debugPrint('⚠️ 驗證失敗或被取消');
+        debugPrint('⚠️ Authentication failed or canceled');
         if (mounted) {
           setState(() {
             _authInProgress = false;
-            _errorMessage = '驗證失敗或已取消';
+            _errorMessage = 'Authentication failed or canceled';
           });
         }
       }
     } catch (e) {
-      debugPrint('❌ 驗證錯誤: $e');
+      debugPrint('❌ Authentication error: $e');
       if (mounted) {
         setState(() {
           _authInProgress = false;
-          _errorMessage = '驗證錯誤: $e';
+          _errorMessage = 'Authentication error: $e';
         });
       }
     }
@@ -115,7 +115,7 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
                 });
                 _authenticate();
               },
-              child: const Text('重新嘗試指紋驗證'),
+              child: const Text('Retry Fingerprint Authentication'),
             ),
             const SizedBox(height: 12),
             TextButton(
@@ -124,7 +124,7 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
                   MaterialPageRoute(builder: (_) => const ListPageSchedule(userId: null)),
                 );
               },
-              child: const Text('跳過驗證'),
+              child: const Text('Skip Authentication'),
             ),
           ],
         ),

@@ -165,13 +165,13 @@ class ListPageScheduleController {
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-        return const Color(0xFFFFE0B3); // 米黃色
+        return const Color(0xFFFFE0B3);
       case 'complete':
-        return const Color(0xFF4CAF50); // 綠色
+        return const Color(0xFF4CAF50);
       case 'rejected':
-        return const Color(0xFFF44336); // 紅色
+        return const Color(0xFFF44336);
       default:
-        return const Color(0xFFFFA500); // 橙色
+        return const Color(0xFFFFA500);
     }
   }
 }

@@ -188,7 +188,8 @@ class _SetRoutePageState extends State<SetRoutePage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context);
+            // 檢查是否有狀態更新，如果有則返回 true 觸發刷新
+            Navigator.pop(context, status != "pending");
           },
         ),
       ),

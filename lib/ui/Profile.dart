@@ -17,10 +17,10 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   int _bottomIndex = 0;
-  String? _imageUrl; // ✅ 儲存最新頭像 URL
+  String? _imageUrl; // ✅ Store latest avatar URL
 
   Future<void> _pickAndUploadImage() async {
-    debugPrint("📷 Avatar tapped"); // ✅ 用來確認事件有觸發
+    debugPrint("📷 Avatar tapped"); // ✅ For confirming event is triggered
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
@@ -28,21 +28,21 @@ class _ProfilePageState extends State<ProfilePage> {
       final file = File(pickedFile.path);
 
       try {
-        // 1️⃣ 呼叫 controller 上傳 + 更新 DB
+        // 1️⃣ Call controller to upload + update DB
         final newImageUrl =
         await UserController().updateProfilePicture(widget.userId, file);
 
-        // 2️⃣ 更新畫面
+        // 2️⃣ Update UI
         setState(() {
           _imageUrl = newImageUrl;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ 頭像更新成功！')),
+          const SnackBar(content: Text('✅ Avatar updated successfully!')),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ 更新失敗: $e')),
+          SnackBar(content: Text('❌ Update failed: $e')),
         );
       }
     }
@@ -70,7 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _Avatar(
             name: widget.userName,
             imageUrl: _imageUrl,
-            onTap: _pickAndUploadImage, // ✅ 把 callback 傳給 _Avatar
+            onTap: _pickAndUploadImage, // ✅ Pass callback to _Avatar
           ),
           const SizedBox(height: 8),
           Center(
@@ -141,7 +141,7 @@ class _Avatar extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           GestureDetector(
-            onTap: onTap, // ✅ 點整個頭像也能換圖
+            onTap: onTap, // ✅ Tap avatar to change picture
             child: CircleAvatar(
               radius: 48,
               backgroundImage: imageUrl != null
@@ -154,7 +154,7 @@ class _Avatar extends StatelessWidget {
             right: 0,
             bottom: 0,
             child: GestureDetector(
-              onTap: onTap, // ✅ 點小相機按鈕也能換圖
+              onTap: onTap, // ✅ Tap camera button to change picture
               child: Container(
                 width: 32,
                 height: 32,
@@ -207,4 +207,3 @@ class _ListTile extends StatelessWidget {
     );
   }
 }
-
