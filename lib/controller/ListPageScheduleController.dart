@@ -89,9 +89,12 @@ class ListPageScheduleController {
         if (isInRange) {
           final status = task['status'] as String?;
           final displayStatus = getDisplayStatus(status);
+          // 只計算 Pending 狀態，排除 Rejected 狀態
           if (displayStatus == 'Pending') {
             count++;
             print('🔍 Future count: Task ${task['id']} (${taskDate}) is pending and in range, count=$count');
+          } else if (displayStatus == 'Rejected') {
+            print('🔍 Future count: Task ${task['id']} (${taskDate}) is rejected, not counting');
           }
         }
       } catch (e) {
@@ -128,8 +131,12 @@ class ListPageScheduleController {
     for (var task in todayTasks) {
       final status = task['status'] as String?;
       final displayStatus = getDisplayStatus(status);
+      // 只計算 Pending 狀態，排除 Rejected 狀態
       if (displayStatus == 'Pending') {
         count++;
+        print('🔍 Today count: Task ${task['id']} is pending, count=$count');
+      } else if (displayStatus == 'Rejected') {
+        print('🔍 Today count: Task ${task['id']} is rejected, not counting');
       }
     }
     return count;
@@ -144,7 +151,11 @@ class ListPageScheduleController {
       case 'en route':
         return 'Pending';
       case 'delivered':
+      case 'completed':
+      case 'complement':
         return 'Complete';
+      case 'rejected':
+        return 'Rejected';
       default:
         return 'Pending';
     }
@@ -157,6 +168,8 @@ class ListPageScheduleController {
         return const Color(0xFFFFE0B3); // 米黃色
       case 'complete':
         return const Color(0xFF4CAF50); // 綠色
+      case 'rejected':
+        return const Color(0xFFF44336); // 紅色
       default:
         return const Color(0xFFFFA500); // 橙色
     }

@@ -243,10 +243,32 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
         currentIndex: _bottomIndex,
         selectedItemColor: const Color(0xFF2D4CC8),
         unselectedItemColor: Colors.black54,
-
+        onTap: (index) {
+          setState(() {
+            _bottomIndex = index;
+          });
+          
+          if (index == 1) { // Profile icon clicked
+            if (widget.userId != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProfilePage(
+                    userId: widget.userId!,
+                    userName: _userName,
+                  ),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("User ID 不存在，無法進入 Profile")),
+              );
+            }
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.list), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
         ],
       ),
     );
@@ -333,7 +355,7 @@ class _ScheduleCardState extends State<_ScheduleCard> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: widget.isTodaySelected ? () {
+                  onTap: (widget.isTodaySelected && widget.status != 'Rejected') ? () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -344,13 +366,13 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: widget.status == 'Rejected' ? const Color(0xFFF44336) : Colors.white,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       "T${widget.id}",
-                      style: const TextStyle(
-                        color: Color(0xFF2D4CC8),
+                      style: TextStyle(
+                        color: widget.status == 'Rejected' ? Colors.white : const Color(0xFF2D4CC8),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -366,7 +388,8 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                   child: Text(
                     widget.status,
                     style: TextStyle(
-                      color: widget.statusColor == const Color(0xFF4CAF50)
+                      color: (widget.statusColor == const Color(0xFF4CAF50) || 
+                              widget.statusColor == const Color(0xFFF44336))
                           ? Colors.white
                           : Colors.black,
                       fontWeight: FontWeight.w600,
