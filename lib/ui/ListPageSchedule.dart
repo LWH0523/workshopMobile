@@ -359,44 +359,47 @@ class _ScheduleCardState extends State<_ScheduleCard> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
-                GestureDetector(
-                  // Updated onTap condition
-                  onTap: (widget.isTodaySelected || widget.status != 'Rejected')
-                      ? () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => SetRoutePage(
-                          userId: widget.userId,
-                          taskId: widget.id,
-                        ),
+                  GestureDetector(
+                    onTap: widget.isTodaySelected
+                        ? () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => SetRoutePage(
+                                  userId: widget.userId,
+                                  taskId: widget.id,
+                                ),
+                              ),
+                            );
+                            if (result == true) {
+                              widget.onRefresh();
+                            }
+                          }
+                        : null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: !widget.isTodaySelected
+                            ? const Color(0xFFE9EFFD)
+                            : (widget.status == 'Rejected'
+                                ? const Color(0xFFF44336)
+                                : Colors.white),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    );
-                    if (result == true) {
-                      widget.onRefresh(); // Call parent refresh
-                    }
-                  }
-                      : null,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: widget.status == 'Rejected'
-                          ? const Color(0xFFF44336)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      "T${widget.id}",
-                      style: TextStyle(
-                        color: widget.status == 'Rejected'
-                            ? Colors.white
-                            : const Color(0xFF2D4CC8),
-                        fontWeight: FontWeight.w700,
+                      child: Text(
+                        "T${widget.id}",
+                        style: TextStyle(
+                          color: !widget.isTodaySelected
+                              ? Colors.grey
+                              : (widget.status == 'Rejected'
+                                  ? Colors.white
+                                  : const Color(0xFF2D4CC8)),
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
-                ),
                 const SizedBox(width: 8),
                 Container(
                   padding:
