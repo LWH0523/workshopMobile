@@ -17,10 +17,26 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   int _bottomIndex = 0;
-  String? _imageUrl; // ✅ Store latest avatar URL
+  String? _imageUrl; // Store latest avatar URL
 
+  @override
+  void initState() {
+    super.initState();
+    _loadUserAvatar(); // Load avatar on initialization
+  }
+
+  /// Load avatar from database
+  Future<void> _loadUserAvatar() async {
+    final avatarUrl =
+    await UserController().getUserAvatar(widget.userId); // From controller
+    setState(() {
+      _imageUrl = avatarUrl;
+    });
+  }
+
+  /// Pick image and upload
   Future<void> _pickAndUploadImage() async {
-    debugPrint("📷 Avatar tapped"); // ✅ For confirming event is triggered
+    debugPrint("📷 Avatar tapped");
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
@@ -28,21 +44,21 @@ class _ProfilePageState extends State<ProfilePage> {
       final file = File(pickedFile.path);
 
       try {
-        // 1️⃣ Call controller to upload + update DB
+        // 1️ Upload and update DB
         final newImageUrl =
         await UserController().updateProfilePicture(widget.userId, file);
 
-        // 2️⃣ Update UI
+        // 2 Update UI
         setState(() {
           _imageUrl = newImageUrl;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Avatar updated successfully!')),
+          const SnackBar(content: Text(' Avatar updated successfully!')),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ Update failed: $e')),
+          SnackBar(content: Text(' Update failed: $e')),
         );
       }
     }
@@ -69,8 +85,8 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 12),
           _Avatar(
             name: widget.userName,
-            imageUrl: _imageUrl,
-            onTap: _pickAndUploadImage, // ✅ Pass callback to _Avatar
+            imageUrl: _imageUrl, //  Display from DB or after upload
+            onTap: _pickAndUploadImage,
           ),
           const SizedBox(height: 8),
           Center(
@@ -122,9 +138,9 @@ class _ProfilePageState extends State<ProfilePage> {
             _bottomIndex = index;
           });
           if (index == 0) {
-            Navigator.pop(context); // 返回列表页
+            Navigator.pop(context);
           } else if (index == 1) {
-            // 当前页面，无需跳转
+            // Current page, no navigation needed
           }
         },
       ),
@@ -146,7 +162,7 @@ class _Avatar extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           GestureDetector(
-            onTap: onTap, // ✅ Tap avatar to change picture
+            onTap: onTap,
             child: CircleAvatar(
               radius: 48,
               backgroundImage: imageUrl != null
@@ -159,7 +175,7 @@ class _Avatar extends StatelessWidget {
             right: 0,
             bottom: 0,
             child: GestureDetector(
-              onTap: onTap, // ✅ Tap camera button to change picture
+              onTap: onTap,
               child: Container(
                 width: 32,
                 height: 32,

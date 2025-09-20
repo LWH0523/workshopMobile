@@ -11,6 +11,7 @@ class UserController {
 
   final UserService _userService = UserService();
 
+  /// Create new user data (if not exists)
   Future<void> saveAUserData(int userId) async {
     try {
       final existing = await _userService.getUserById(userId);
@@ -28,25 +29,31 @@ class UserController {
     }
   }
 
-  /// Get user data
+  /// Get full user data
   Future<Map<String, dynamic>?> getUserById(int userId) async {
     return await _userService.getUserById(userId);
   }
 
-  /// Update profile picture
+  /// Update user profile picture (upload + update DB)
   Future<String> updateProfilePicture(int userId, File imageFile) async {
     try {
-      // 1Upload image
-      final imageUrl = await _userService.uploadUserImage(userId, imageFile);
-
-      // Update user.image field in database
-      await _userService.updateUserImage(userId, imageUrl);
-
-      print('User $userId profile picture updated: $imageUrl');
+      final imageUrl =
+      await _userService.uploadAndSaveUserImage(userId, imageFile);
+      print(' User $userId profile picture updated: $imageUrl');
       return imageUrl;
     } catch (e) {
-      print('Failed to update profile picture: $e');
+      print(' Failed to update profile picture: $e');
       rethrow;
+    }
+  }
+
+  /// Get only user avatar URL
+  Future<String?> getUserAvatar(int userId) async {
+    try {
+      return await _userService.getUserAvatar(userId);
+    } catch (e) {
+      print(' Failed to fetch user avatar: $e');
+      return null;
     }
   }
 }

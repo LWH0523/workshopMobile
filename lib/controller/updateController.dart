@@ -13,6 +13,8 @@ class UpdateController {
     return await updateService.updateTaskStatus(userId, taskId, status);
   }
 
+
+
   Future<bool> checkSignatureOrImage(int userId, int taskId) async {
     final tasks = await fetchTaskDeliverDetails(userId: userId, taskId: taskId);
     if (tasks == null || tasks.isEmpty) return false;
