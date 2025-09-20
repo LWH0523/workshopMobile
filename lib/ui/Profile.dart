@@ -121,6 +121,11 @@ class _ProfilePageState extends State<ProfilePage> {
           setState(() {
             _bottomIndex = index;
           });
+          if (index == 0) {
+            Navigator.pop(context); // 返回列表页
+          } else if (index == 1) {
+            // 当前页面，无需跳转
+          }
         },
       ),
     );

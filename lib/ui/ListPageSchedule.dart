@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../controller/ListPageScheduleController.dart';
 import '../controller/user_controller.dart';
 import '../database/ListPageScheduleDB.dart';
+import '../widgets/app_bottom_nav.dart';
 import 'Profile.dart';
 import 'update.dart';
 import 'MapLauncherExample.dart';
@@ -249,38 +250,33 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _bottomIndex,
-        selectedItemColor: const Color(0xFF2D4CC8),
-        unselectedItemColor: Colors.black54,
-        onTap: (index) {
-          setState(() {
-            _bottomIndex = index;
-          });
-
-          if (index == 1) { // Profile icon clicked
-            if (widget.userId != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProfilePage(
-                    userId: widget.userId!,
-                    userName: _userName,
+        bottomNavigationBar: AppBottomNav(
+          selectedIndex: _bottomIndex,
+          onTap: (index) {
+            setState(() {
+              _bottomIndex = index;
+            });
+            if (index == 0) {
+              // 列表页，当前页面无需跳转
+            } else if (index == 1) {
+              if (widget.userId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfilePage(
+                      userId: widget.userId!,
+                      userName: _userName,
+                    ),
                   ),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("User ID does not exist, cannot open Profile")),
-              );
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("User ID does not exist, cannot open Profile")),
+                );
+              }
             }
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-        ],
-      ),
+          },
+        ),
     );
   }
 }
@@ -323,8 +319,8 @@ class _ScheduleCardState extends State<_ScheduleCard> {
   @override
   void initState() {
     super.initState();
-    final stored = PageStorage.of(context)
-        ?.readState(context, identifier: 'componentsExpanded');
+  final stored = PageStorage.of(context)
+    .readState(context, identifier: 'componentsExpanded');
     if (stored is bool) {
       _componentsExpanded = stored;
     }
@@ -489,7 +485,7 @@ class _ScheduleCardState extends State<_ScheduleCard> {
                         setState(() {
                           _componentsExpanded = !_componentsExpanded;
                         });
-                        PageStorage.of(context)?.writeState(
+                        PageStorage.of(context).writeState(
                           context,
                           _componentsExpanded,
                           identifier: 'componentsExpanded',

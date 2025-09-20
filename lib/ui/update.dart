@@ -1,18 +1,16 @@
 import 'dart:convert';
-// import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-// import 'package:signature/signature.dart';
 import 'package:testapi/controller/SignaturePhotoController.dart';
 import 'package:testapi/database/SignaturePhotoDB.dart';
 import 'package:testapi/widgets/SignaturePhotoWidget.dart';
+import 'package:testapi/widgets/app_bottom_nav.dart';
 import '../controller/updateController.dart';
+import '../controller/user_controller.dart';
 import '../database/updateDB.dart';
 import 'ListPageSchedule.dart';
 import 'MapLauncherExample.dart';
 import 'Profile.dart';
-// import 'package:mobile_assignment/ui/SignaturePhotoWidget.dart';
 
 class SetRoutePage extends StatefulWidget {
   final int? userId;
@@ -27,8 +25,10 @@ class SetRoutePage extends StatefulWidget {
 class _SetRoutePageState extends State<SetRoutePage> {
   final updateController = UpdateController(UpdateService());
   final signaturePhotoController = Signaturephotocontroller(SignaturePhotoDB());
+  final UserController _userController = UserController();
   List<Map<String, dynamic>> tasks = [];
   int _bottomIndex = 0;
+  String _userName = 'Kitty';
 
   String status = "pending";
   String buttonText = "Picked Up";
@@ -68,6 +68,21 @@ class _SetRoutePageState extends State<SetRoutePage> {
     }
   }
 
+  Future<void> _loadUserName() async {
+    if (widget.userId != null) {
+      try {
+        final user = await _userController.getUserById(widget.userId!);
+        if (user != null && user['name'] != null) {
+          setState(() {
+            _userName = user['name'].toString();
+          });
+        }
+      } catch (e) {
+        print('Error loading user name: $e');
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -75,6 +90,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
       "SetRoutePage initState called with userId=${widget.userId}, taskId=${widget.taskId}",
     );
     fetchTasks();
+    _loadUserName();
   }
 
   Future<void> fetchTasks() async {
@@ -95,18 +111,18 @@ class _SetRoutePageState extends State<SetRoutePage> {
         if (task['signature'] != null && task['signature'] is String) {
           try {
             task['signature'] = base64Decode(task['signature']);
-            print("✅ signature decoded, length=${task['signature'].length}");
+            print("signature decoded, length=${task['signature'].length}");
           } catch (e) {
-            print("⚠️ signature decode failed: $e");
+            print("signature decode failed: $e");
             task['signature'] = null;
           }
         }
         if (task['image'] != null && task['image'] is String) {
           try {
             task['image'] = base64Decode(task['image']);
-            print("✅ image decoded, length=${task['image'].length}");
+            print("image decoded, length=${task['image'].length}");
           } catch (e) {
-            print("⚠️ image decode failed: $e");
+            print("image decode failed: $e");
             task['image'] = null;
           }
         }
@@ -188,7 +204,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () {
-            // 檢查是否有狀態更新，如果有則返回 true 觸發刷新
+            // check have status update if have then return true trigger load
             Navigator.pop(context, status != "pending");
           },
         ),
@@ -279,7 +295,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
                               status == 'delivered' ||
                               status == 'rejected') &&
                           index == tasks.length) {
-                        // 取第一个任务用于签名和照片预览（假设只有一个任务需要签名/照片）
+                        // take the first task used for signature and photo preview(assume only have one task need signature/photo)
                         final previewTask = tasks.isNotEmpty
                             ? tasks.first
                             : null;
@@ -297,7 +313,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
                                 taskId: widget.taskId,
                                 status: status,
                                 reasonOfRejected:
-                                previewTask?['reasonOfRejected'],
+                                    previewTask?['reasonOfRejected'],
                                 onSignatureSaved: (signature) async {
                                   if (signature != null &&
                                       signature.isNotEmpty) {
@@ -400,7 +416,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // 左邊內容 (title + subtitle)
+                              // title + subtitle
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,7 +432,8 @@ class _SetRoutePageState extends State<SetRoutePage> {
                                     Text(task['workshop'] ?? ''),
                                     const SizedBox(height: 6),
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         const Icon(
                                           Icons.location_on,
@@ -427,7 +444,9 @@ class _SetRoutePageState extends State<SetRoutePage> {
                                         Expanded(
                                           child: Text(
                                             task['destination'] ?? '',
-                                            style: const TextStyle(fontSize: 14),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -450,13 +469,17 @@ class _SetRoutePageState extends State<SetRoutePage> {
                               IconButton(
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
-                                icon: const Icon(Icons.more_horiz, color: Colors.black54),
+                                icon: const Icon(
+                                  Icons.more_horiz,
+                                  color: Colors.black54,
+                                ),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          MapLauncherExample(initialTaskId: widget.taskId),
+                                      builder: (_) => MapLauncherExample(
+                                        initialTaskId: widget.taskId,
+                                      ),
                                     ),
                                   );
                                 },
@@ -469,7 +492,7 @@ class _SetRoutePageState extends State<SetRoutePage> {
                   ),
           ),
 
-          // 按鈕區域
+          // button area
           if (status != "delivered" &&
               status != "rejected" &&
               status != "enroute")
@@ -519,45 +542,6 @@ class _SetRoutePageState extends State<SetRoutePage> {
                         isSuccess: true,
                       );
                       await Future.delayed(const Duration(seconds: 1));
-
-                      // Future<void> checkDeliveryStatus() async {
-                      //   final hasConfirmation = await updateController
-                      //       .checkSignatureOrImage(
-                      //         widget.userId!,
-                      //         widget.taskId!,
-                      //       );
-
-                      //   String finalStatus;
-                      //   if (hasConfirmation) {
-                      //     finalStatus = "delivered";
-                      //     showStatusDialog(
-                      //       context,
-                      //       "Delivered Successful",
-                      //       isSuccess: true,
-                      //     );
-                      //   } else {
-                      //     finalStatus = "rejected";
-                      //     showStatusDialog(
-                      //       context,
-                      //       "Delivery has been Rejected",
-                      //       isSuccess: false,
-                      //     );
-                      //   }
-
-                      //   final success = await updateController.updateStatus(
-                      //     widget.userId!,
-                      //     widget.taskId!,
-                      //     finalStatus,
-                      //   );
-                      //   if (success && mounted) {
-                      //     setState(() {
-                      //       status = finalStatus;
-                      //       for (var task in tasks) {
-                      //         task['status'] = finalStatus;
-                      //       }
-                      //     });
-                      //   }
-                      // }
                     } else {
                       final success = await updateController.updateStatus(
                         widget.userId!,
@@ -597,11 +581,12 @@ class _SetRoutePageState extends State<SetRoutePage> {
         ],
       ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _bottomIndex,
-        selectedItemColor: const Color(0xFF2D4CC8),
-        unselectedItemColor: Colors.black54,
+      bottomNavigationBar: AppBottomNav(
+        selectedIndex: _bottomIndex,
         onTap: (index) {
+          setState(() {
+            _bottomIndex = index;
+          });
           if (index == 0) {
             Navigator.push(
               context,
@@ -614,18 +599,11 @@ class _SetRoutePageState extends State<SetRoutePage> {
               context,
               MaterialPageRoute(
                 builder: (_) =>
-                    ProfilePage(userId: widget.userId!, userName: ''),
+                    ProfilePage(userId: widget.userId!, userName: _userName),
               ),
             );
           }
-          setState(() {
-            _bottomIndex = index;
-          });
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-        ],
       ),
     );
   }
