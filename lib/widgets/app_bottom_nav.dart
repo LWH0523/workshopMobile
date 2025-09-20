@@ -4,7 +4,11 @@ class AppBottomNav extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
 
-  const AppBottomNav({super.key, required this.selectedIndex, required this.onTap});
+  const AppBottomNav({
+    super.key,
+    required this.selectedIndex,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +19,8 @@ class AppBottomNav extends StatelessWidget {
       onTap: onTap,
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.list), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.notifications), label: ''),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
       ],
     );
   }
 }
-
-
-
