@@ -62,19 +62,44 @@ class ListPageScheduleController {
     return todayTasks;
   }
 
-  // 獲取待處理的訂單數量 (根據 getDisplayStatus 判斷)
+  // 獲取待處理的訂單數量 (根據 getDisplayStatus 判斷) - 只計算未來2天
   Future<int> getPendingDeliveriesCount({int? userId}) async {
     final allTasks = await scheduleService.getTaskDeliverDetails(userId: userId);
     if (allTasks == null) return 0;
 
+    // 計算未來兩天的日期範圍（不包括今天）
+    final DateTime now = DateTime.now();
+    final DateTime nowDate = DateTime(now.year, now.month, now.day);
+    final DateTime threeDaysLater = now.add(const Duration(days: 3));
+
+    print('🔍 Future count filter: Today=${nowDate.day}/${nowDate.month}, Counting tasks from ${nowDate.add(const Duration(days: 1)).day}/${nowDate.add(const Duration(days: 1)).month} to ${nowDate.add(const Duration(days: 2)).day}/${nowDate.add(const Duration(days: 2)).month}');
+
     int count = 0;
     for (var task in allTasks) {
-      final status = task['status'] as String?;
-      final displayStatus = getDisplayStatus(status);
-      if (displayStatus == 'Pending') {
-        count++;
+      final taskDate = task['duedate'] as String?;
+      if (taskDate == null) continue;
+      
+      try {
+        final DateTime taskDateTime = DateTime.parse(taskDate);
+        final DateTime taskDateOnly = DateTime(taskDateTime.year, taskDateTime.month, taskDateTime.day);
+        
+        // 只計算明天和後天的任務（不包括今天，不包括3天後）
+        final bool isInRange = taskDateOnly.isAfter(nowDate) && taskDateOnly.isBefore(threeDaysLater);
+        
+        if (isInRange) {
+          final status = task['status'] as String?;
+          final displayStatus = getDisplayStatus(status);
+          if (displayStatus == 'Pending') {
+            count++;
+            print('🔍 Future count: Task ${task['id']} (${taskDate}) is pending and in range, count=$count');
+          }
+        }
+      } catch (e) {
+        print('🔍 Future count: Date parse error for task ${task['id']}: $e, date: $taskDate');
       }
     }
+    
+    print('🔍 Future count: Found $count pending tasks in next 2 days');
     return count;
   }
 
