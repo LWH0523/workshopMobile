@@ -288,7 +288,7 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Signature 区域
+        // Signature area
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
