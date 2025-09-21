@@ -158,7 +158,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       IconButton(
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        icon: const Icon(Icons.more_horiz, color: Colors.black54),
+                        icon: const Icon(Icons.more_horiz, color: Colors.white),
                         onPressed: () {
                           Navigator.push(
                             context,

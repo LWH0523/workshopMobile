@@ -254,10 +254,10 @@ class _ListPageScheduleState extends State<ListPageSchedule> {
           selectedIndex: _bottomIndex,
           onTap: (index) {
             setState(() {
-              _bottomIndex = index;
+              _bottomIndex = 0;
             });
             if (index == 0) {
-              // 列表页，当前页面无需跳转
+              // current page
             } else if (index == 1) {
               if (widget.userId != null) {
                 Navigator.push(

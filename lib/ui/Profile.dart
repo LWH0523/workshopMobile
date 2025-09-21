@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../controller/user_controller.dart';
 import '../widgets/app_bottom_nav.dart';
+import 'ListPageSchedule.dart';
 import 'history.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -16,7 +17,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  int _bottomIndex = 0;
+  int _bottomIndex = 1;
   String? _imageUrl;
 
   @override
@@ -73,7 +74,9 @@ class _ProfilePageState extends State<ProfilePage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.popUntil(context, (route) => route.isFirst);
+          }
         ),
         title: const SizedBox.shrink(),
       ),
@@ -130,7 +133,12 @@ class _ProfilePageState extends State<ProfilePage> {
             _bottomIndex = index;
           });
           if (index == 0) {
-            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ListPageSchedule(userId: widget.userId),
+              ),
+            );
           } else if (index == 1) {
             // Current page, no navigation needed
           }
