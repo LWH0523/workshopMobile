@@ -81,7 +81,6 @@ class _HistoryPageState extends State<HistoryPage> {
           final formattedDateTime =
           formatDateTime(task['duedate'], task['time']);
 
-          // components list
           final List<String> allNames =
               (task['component_names'] as List?)?.cast<String>() ??
                   (task['component_name'] != null
@@ -131,7 +130,6 @@ class _HistoryPageState extends State<HistoryPage> {
                       ),
                       const SizedBox(width: 8),
 
-                      // 📦 Status
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 3),
@@ -215,7 +213,6 @@ class _HistoryPageState extends State<HistoryPage> {
                       ),
                       const SizedBox(height: 6),
 
-                      // 📅 Date & Time
                       Row(
                         children: [
                           const Icon(Icons.calendar_today,
@@ -229,7 +226,6 @@ class _HistoryPageState extends State<HistoryPage> {
                       ),
                       const SizedBox(height: 12),
 
-                      // 🔧 Components with dropdown
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [

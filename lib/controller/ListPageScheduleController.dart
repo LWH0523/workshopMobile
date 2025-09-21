@@ -10,7 +10,6 @@ class ListPageScheduleController {
     final allTasks = await scheduleService.getTaskDeliverDetails(userId: userId);
     if (allTasks == null) return null;
 
-    // Calculate the date range for the next two days (excluding today)
     final DateTime now = DateTime.now();
     final DateTime nowDate = DateTime(now.year, now.month, now.day);
     final DateTime dayAfterTomorrow = now.add(const Duration(days: 2));
@@ -26,7 +25,6 @@ class ListPageScheduleController {
         final DateTime taskDateTime = DateTime.parse(taskDate);
         final DateTime taskDateOnly = DateTime(taskDateTime.year, taskDateTime.month, taskDateTime.day);
 
-        // Only show tasks for tomorrow and the day after tomorrow (excluding today and 3+ days later)
         final bool isInRange = taskDateOnly.isAfter(nowDate) && taskDateOnly.isBefore(threeDaysLater);
         print('Task ${task['id']}: taskDate=$taskDate, nowDate=${nowDate.year}-${nowDate.month}-${nowDate.day}, isInRange=$isInRange');
 
@@ -41,7 +39,6 @@ class ListPageScheduleController {
     return futureTasks;
   }
 
-  // Get today's tasks
   Future<List<Map<String, dynamic>>?> fetchTodayTaskDeliverDetails({int? userId}) async {
     final todayTasks = await scheduleService.getTodayTaskDeliverDetails(userId: userId);
     if (todayTasks == null) {
@@ -51,23 +48,19 @@ class ListPageScheduleController {
 
     print('fetchTodayTaskDeliverDetails: Found ${todayTasks.length} tasks for today');
 
-    // Print all task statuses
     for (var task in todayTasks) {
       final status = task['status'] as String?;
       final displayStatus = getDisplayStatus(status);
       print('Task ${task['id']}: status=$status, displayStatus=$displayStatus');
     }
 
-    // Return all today's tasks (regardless of Pending or Complete)
     return todayTasks;
   }
 
-  // Get the number of pending deliveries (based on getDisplayStatus) - only count next 2 days
   Future<int> getPendingDeliveriesCount({int? userId}) async {
     final allTasks = await scheduleService.getTaskDeliverDetails(userId: userId);
     if (allTasks == null) return 0;
 
-    // Calculate the date range for the next two days (excluding today)
     final DateTime now = DateTime.now();
     final DateTime nowDate = DateTime(now.year, now.month, now.day);
     final DateTime threeDaysLater = now.add(const Duration(days: 3));
@@ -83,13 +76,11 @@ class ListPageScheduleController {
         final DateTime taskDateTime = DateTime.parse(taskDate);
         final DateTime taskDateOnly = DateTime(taskDateTime.year, taskDateTime.month, taskDateTime.day);
 
-        // Only count tomorrow and the day after tomorrow (excluding today and 3+ days later)
         final bool isInRange = taskDateOnly.isAfter(nowDate) && taskDateOnly.isBefore(threeDaysLater);
 
         if (isInRange) {
           final status = task['status'] as String?;
           final displayStatus = getDisplayStatus(status);
-          // Only count Pending status, exclude Rejected status
           if (displayStatus == 'Pending') {
             count++;
             print('Future count: Task ${task['id']} (${taskDate}) is pending and in range, count=$count');
@@ -106,7 +97,6 @@ class ListPageScheduleController {
     return count;
   }
 
-  // Get the number of completed deliveries (display status = Complete)
   Future<int> getCompleteDeliveriesCount({int? userId}) async {
     final allTasks = await scheduleService.getTaskDeliverDetails(userId: userId);
     if (allTasks == null) return 0;
@@ -122,7 +112,6 @@ class ListPageScheduleController {
     return count;
   }
 
-  // Get the number of pending deliveries today
   Future<int> getTodayPendingDeliveriesCount({int? userId}) async {
     final todayTasks = await scheduleService.getTodayTaskDeliverDetails(userId: userId);
     if (todayTasks == null) return 0;
@@ -131,7 +120,6 @@ class ListPageScheduleController {
     for (var task in todayTasks) {
       final status = task['status'] as String?;
       final displayStatus = getDisplayStatus(status);
-      // Only count Pending status, exclude Rejected status
       if (displayStatus == 'Pending') {
         count++;
         print('Today count: Task ${task['id']} is pending, count=$count');
@@ -142,7 +130,6 @@ class ListPageScheduleController {
     return count;
   }
 
-  // Determine display status based on delivery status
   String getDisplayStatus(String? deliveryStatus) {
     if (deliveryStatus == null) return 'Pending';
 
@@ -161,7 +148,6 @@ class ListPageScheduleController {
     }
   }
 
-  // Get status color based on status
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':

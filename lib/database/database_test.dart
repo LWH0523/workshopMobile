@@ -5,7 +5,7 @@ class DatabaseTest {
 
   static Future<List<Map<String, dynamic>>> getTaskDeliverDetails() async {
     try {
-      print("🔍 DEBUG: Starting getTaskDeliverDetails query...");
+      print(" DEBUG: Starting getTaskDeliverDetails query...");
       final response = await supabase
           .from('taskDeliver')
           .select('''
@@ -34,17 +34,17 @@ class DatabaseTest {
               )
             )
           ''')
-          .limit(10); // adjust limit as needed
+          .limit(10);
 
-      print("🔍 DEBUG: Raw response from database: $response");
+      print(" DEBUG: Raw response from database: $response");
       final result = List<Map<String, dynamic>>.from(response);
-      print("🔍 DEBUG: Processed ${result.length} tasks");
+      print(" DEBUG: Processed ${result.length} tasks");
       for (int i = 0; i < result.length; i++) {
-        print("🔍 DEBUG: Task $i: ${result[i]}");
+        print("DEBUG: Task $i: ${result[i]}");
       }
       return result;
     } catch (e) {
-      print("❌ Error retrieving taskDeliver details: $e");
+      print(" Error retrieving taskDeliver details: $e");
       return [];
     }
   }
@@ -57,7 +57,7 @@ class DatabaseTest {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print("❌ Error retrieving taskDeliver details: $e");
+      print(" Error retrieving taskDeliver details: $e");
       return [];
     }
   }
@@ -65,7 +65,7 @@ class DatabaseTest {
   // Fetch components for a specific task id using the task_deliver_component junction table
   static Future<List<Map<String, dynamic>>> getComponentsByTaskId(dynamic taskId) async {
     try {
-      print("🔍 DEBUG: Fetching components for taskId: $taskId");
+      print("DEBUG: Fetching components for taskId: $taskId");
       final response = await supabase
           .from('task_deliver_component')
           .select('''
@@ -84,15 +84,15 @@ class DatabaseTest {
           .eq('taskDeliver_id', taskId)
           .order('id');
 
-      print("🔍 DEBUG: Raw component response: $response");
+      print("DEBUG: Raw component response: $response");
 
       // Transform the response to match the expected format
       final List<Map<String, dynamic>> transformedData = [];
       for (final item in response) {
-        print("🔍 DEBUG: Processing component item: $item");
+        print(" DEBUG: Processing component item: $item");
         final component = item['component'];
         if (component != null) {
-          print("🔍 DEBUG: Component data: $component");
+          print(" DEBUG: Component data: $component");
           transformedData.add({
             'id': component['id'],
             'name': component['name'],
@@ -108,10 +108,10 @@ class DatabaseTest {
         }
       }
 
-      print("🔍 DEBUG: Transformed ${transformedData.length} components for task $taskId");
+      print(" DEBUG: Transformed ${transformedData.length} components for task $taskId");
       return transformedData;
     } catch (e) {
-      print("❌ Error retrieving components for task $taskId: $e");
+      print(" Error retrieving components for task $taskId: $e");
       return [];
     }
   }
@@ -126,7 +126,7 @@ class DatabaseTest {
           .order('id');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print("❌ Error retrieving components for workshop $workshop: $e");
+      print(" Error retrieving components for workshop $workshop: $e");
       return [];
     }
   }
@@ -169,7 +169,7 @@ class DatabaseTest {
 
       return response;
     } catch (e) {
-      print("❌ Error retrieving task $taskId with components: $e");
+      print(" Error retrieving task $taskId with components: $e");
       return null;
     }
   }
@@ -188,73 +188,73 @@ class DatabaseTest {
 
     try {
       // Test basic connection
-      print("🔍 Testing Supabase connection...");
+      print(" Testing Supabase connection...");
       await supabase.from('taskDeliver').select('count').limit(1);
       results['connection'] = true;
-      print("✅ Database connection successful");
+      print(" Database connection successful");
 
       // Test taskDeliver table
       try {
-        print("🔍 Testing taskDeliver table...");
+        print(" Testing taskDeliver table...");
         final taskData = await supabase
             .from('taskDeliver')
             .select()
             .limit(5);
         results['taskDeliverTable'] = true;
         results['taskDeliverData'] = taskData;
-        print("✅ taskDeliver table accessible, found ${taskData.length} records");
+        print(" taskDeliver table accessible, found ${taskData.length} records");
       } catch (e) {
         results['errors'].add('taskDeliver table error: $e');
-        print("❌ taskDeliver table error: $e");
+        print(" taskDeliver table error: $e");
       }
 
       // Test component table
       try {
-        print("🔍 Testing component table...");
+        print(" Testing component table...");
         final componentData = await supabase
             .from('component')
             .select()
             .limit(5);
         results['componentTable'] = true;
         results['componentData'] = componentData;
-        print("✅ component table accessible, found ${componentData.length} records");
+        print(" component table accessible, found ${componentData.length} records");
       } catch (e) {
         results['errors'].add('component table error: $e');
-        print("❌ component table error: $e");
+        print(" component table error: $e");
       }
 
       // Test task_deliver_component table
       try {
-        print("🔍 Testing task_deliver_component table...");
+        print(" Testing task_deliver_component table...");
         final taskDeliveryComponentData = await supabase
             .from('task_deliver_component')
             .select()
             .limit(5);
         results['taskDeliveryComponentTable'] = true;
         results['taskDeliveryComponentData'] = taskDeliveryComponentData;
-        print("✅ task_deliver_component table accessible, found ${taskDeliveryComponentData.length} records");
+        print(" task_deliver_component table accessible, found ${taskDeliveryComponentData.length} records");
       } catch (e) {
         results['errors'].add('task_deliver_component table error: $e');
-        print("❌ task_deliver_component table error: $e");
+        print(" task_deliver_component table error: $e");
       }
 
       // Test specific query (id=1)
       try {
-        print("🔍 Testing specific query for id=1...");
+        print(" Testing specific query for id=1...");
         final specificTask = await supabase
             .from('taskDeliver')
             .select()
             .eq('id', 1)
             .single();
-        print("✅ Found task with id=1: ${specificTask.toString()}");
+        print(" Found task with id=1: ${specificTask.toString()}");
       } catch (e) {
         results['errors'].add('Specific query error: $e');
-        print("❌ No task found with id=1: $e");
+        print(" No task found with id=1: $e");
       }
 
     } catch (e) {
       results['errors'].add('Connection error: $e');
-      print("❌ Database connection failed: $e");
+      print(" Database connection failed: $e");
     }
 
     return results;
@@ -272,7 +272,7 @@ class DatabaseTest {
     };
 
     try {
-      print("🔍 Testing task_deliver_component relationship...");
+      print(" Testing task_deliver_component relationship...");
 
       // Get a sample task with its components
       final taskResponse = await supabase
@@ -308,19 +308,19 @@ class DatabaseTest {
         };
         results['success'] = true;
 
-        print("✅ Found task ${task['id']} with ${taskDeliveryComponents.length} components");
+        print(" Found task ${task['id']} with ${taskDeliveryComponents.length} components");
         for (final tdc in taskDeliveryComponents) {
           final component = tdc['component'];
           print("   - ${component?['name']}: ${component?['qty']} (${component?['workshop']})");
         }
       } else {
         results['errors'].add('No tasks found with components');
-        print("❌ No tasks found with components");
+        print(" No tasks found with components");
       }
 
     } catch (e) {
       results['errors'].add('Relationship test error: $e');
-      print("❌ Error testing relationship: $e");
+      print(" Error testing relationship: $e");
     }
 
     return results;
@@ -329,37 +329,37 @@ class DatabaseTest {
   /// Print database schema information
   static void printDatabaseInfo(Map<String, dynamic> results) {
     print("\n" + "="*50);
-    print("📊 DATABASE TEST RESULTS");
+    print("DATABASE TEST RESULTS");
     print("="*50);
 
-    print("🔗 Connection: ${results['connection'] ? '✅ SUCCESS' : '❌ FAILED'}");
-    print("📦 taskDeliver Table: ${results['taskDeliverTable'] ? '✅ ACCESSIBLE' : '❌ NOT ACCESSIBLE'}");
-    print("🔧 component Table: ${results['componentTable'] ? '✅ ACCESSIBLE' : '❌ NOT ACCESSIBLE'}");
-    print("🔗 task_deliver_component Table: ${results['taskDeliveryComponentTable'] ? '✅ ACCESSIBLE' : '❌ NOT ACCESSIBLE'}");
+    print(" Connection: ${results['connection'] ? ' SUCCESS' : ' FAILED'}");
+    print(" taskDeliver Table: ${results['taskDeliverTable'] ? ' ACCESSIBLE' : ' NOT ACCESSIBLE'}");
+    print(" component Table: ${results['componentTable'] ? ' ACCESSIBLE' : ' NOT ACCESSIBLE'}");
+    print(" task_deliver_component Table: ${results['taskDeliveryComponentTable'] ? ' ACCESSIBLE' : ' NOT ACCESSIBLE'}");
 
     if (results['taskDeliverData'] != null) {
-      print("\n📋 taskDeliver Sample Data:");
+      print("\n taskDeliver Sample Data:");
       for (var item in results['taskDeliverData']) {
         print("   - ID: ${item['id']}, Fields: ${item.keys.toList()}");
       }
     }
 
     if (results['componentData'] != null) {
-      print("\n🔧 component Sample Data:");
+      print("\n component Sample Data:");
       for (var item in results['componentData']) {
         print("   - ID: ${item['id']}, Fields: ${item.keys.toList()}");
       }
     }
 
     if (results['taskDeliveryComponentData'] != null) {
-      print("\n🔗 task_deliver_component Sample Data:");
+      print("\n task_deliver_component Sample Data:");
       for (var item in results['taskDeliveryComponentData']) {
         print("   - ID: ${item['id']}, Fields: ${item.keys.toList()}");
       }
     }
 
     if (results['errors'].isNotEmpty) {
-      print("\n❌ ERRORS:");
+      print("\n ERRORS:");
       for (var error in results['errors']) {
         print("   - $error");
       }

@@ -1,7 +1,7 @@
 import '../database/database_test.dart';
 
 class detailController {
-  // Fetch Task Deliver data
+
   Future<List<Map<String, dynamic>>> fetchTaskDeliverDetails() async {
     return await DatabaseTest.getTaskDeliverDetails();
 
@@ -25,13 +25,13 @@ class detailController {
     return await DatabaseTest.getTaskWithComponents(taskId);
   }
 
-  // Run database connection test
+
   Future<Map<String, dynamic>> testConnection() async {
     return await DatabaseTest.testDatabaseConnection();
 
   }
 
-  // Test the new task_delivery_component relationship
+
   Future<Map<String, dynamic>> testTaskDeliveryComponentRelationship() async {
     return await DatabaseTest.testTaskDeliveryComponentRelationship();
   }

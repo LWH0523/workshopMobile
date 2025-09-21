@@ -45,7 +45,6 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
       if (didAuthenticate) {
         final prefs = await SharedPreferences.getInstance();
 
-        // 🔹 Generate new or get existing userId
         int? userId = prefs.getInt('user_id');
         if (userId == null) {
           userId = 100000 + Random().nextInt(900000);
@@ -55,7 +54,6 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
           debugPrint('Existing user_id found: $userId');
         }
 
-        // 🔹 Save to database (skip if already exists)
         try {
           await UserController().saveAUserData(userId);
           debugPrint('UserController confirmed userId $userId in database');

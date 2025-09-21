@@ -24,7 +24,6 @@ class UserService {
 
   /// Upload image to Storage only
   Future<String> uploadUserImage(int userId, File file) async {
-    // Store in bucket: avatars under path, e.g. user_1/1695123456.jpg
     final fileName = 'user_$userId/${DateTime.now().millisecondsSinceEpoch}.jpg';
 
     await supabase.storage.from('avatars').upload(
@@ -33,7 +32,6 @@ class UserService {
       fileOptions: const FileOptions(upsert: true), // overwrite if exists
     );
 
-    // Return public URL
     return supabase.storage.from('avatars').getPublicUrl(fileName);
   }
 

@@ -74,7 +74,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
       merged.add({'task': task, 'components': comps});
     }
 
-    // If a specific task id is provided, try to pre-select it
+
     if (mounted) {
       if (widget.initialTaskId != null) {
         final int? wantedId = widget.initialTaskId;
@@ -151,19 +151,19 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
       String day = line;
       String time = '';
 
-      // Prefer split on 2+ spaces (common for aligned text).
+
       final parts = line.split(multiSpace);
       if (parts.length >= 2) {
         day = parts.first;
         time = parts.sublist(1).join(' ');
       } else {
-        // Better fallback: split at the first digit (start of time like 9:30am)
+
         final match = firstDigitSplit.firstMatch(line);
         if (match != null) {
           day = (match.group(1) ?? '').trim();
           time = (match.group(2) ?? '').trim();
         } else {
-          // Last resort: split by the first colon
+
           final int colonIdx = line.indexOf(':');
           if (colonIdx > 0) {
             day = line.substring(0, colonIdx).trim();
@@ -210,7 +210,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Signature column
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -312,7 +312,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
 
 
 
-  // Detail Page UI (Matching the provided image)
+
   Widget _buildDetailPage() {
     if (selectedTaskData == null) return const SizedBox();
 
@@ -322,18 +322,17 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
         : 'Unknown Workshop';
 
     // Debug: Print component data
-    print("🔍 DEBUG: Selected task components: ${selectedTaskComponents.length}");
+    print(" DEBUG: Selected task components: ${selectedTaskComponents.length}");
     for (int i = 0; i < selectedTaskComponents.length; i++) {
-      print("🔍 DEBUG: Component $i: ${selectedTaskComponents[i]}");
+      print(" DEBUG: Component $i: ${selectedTaskComponents[i]}");
     }
 
-    // Pickup location: Use component's destination (from component table)
-    // If no components or no component destination, show a placeholder
+
     final String pickupLocation = selectedTaskComponents.isNotEmpty
         ? (selectedTaskComponents.first['destination'] ?? 'Component destination not available')
         : 'No components found';
 
-    // Shipping location: Use task's destination (from taskDeliver table)
+
     final String shippingLocation = task['destination'] ?? 'Task destination not available';
 
     print("DEBUG: Pickup location: $pickupLocation");
@@ -345,7 +344,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
         ? (selectedTaskComponents.first['business_hour'] ?? '')
         : '';
 
-    // Get contact number from taskDeliver table
+
     final String contact = task['contact_number']?.toString() ?? task['user_id']?.toString() ?? '+012 345 6789';
     final String paymentType = task['paymentType'] ?? 'cash';
     final String paymentStatus = task['paymentStatus'] ?? 'pending';
@@ -356,7 +355,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Pick Up Detail Section
+
           Container(
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -373,7 +372,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Blue Header Bar like list card with Task ID pill (only)
+
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: const BoxDecoration(
@@ -402,7 +401,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                     ],
                   ),
                 ),
-                // Separate blue bar title to match shipping details
+
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: const BoxDecoration(
@@ -441,7 +440,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                       ),
                       const SizedBox(height: 8),
 
-                      // Item Details Table
+
                       if (selectedTaskComponents.isNotEmpty) ...[
                         Container(
                           decoration: BoxDecoration(
@@ -450,7 +449,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                           ),
                           child: Column(
                             children: [
-                              // Header
+
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
@@ -497,7 +496,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
             ),
           ),
 
-          // Shipping Details Section
+
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
@@ -514,7 +513,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Shipping Details Header
+
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: const BoxDecoration(
@@ -626,7 +625,7 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
               icon: const Icon(Icons.phone, color: Colors.blue),
               onPressed: () async {
               try {
-                // 清理電話號碼，移除空格和特殊字符
+
                 String cleanPhoneNumber = value.replaceAll(
                   RegExp(r'[^\d+]'),
                   '',
@@ -634,23 +633,23 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                 if (!cleanPhoneNumber.startsWith('+')) {
                   cleanPhoneNumber = '+$cleanPhoneNumber';
                 }
-                print("🔍 DEBUG: Original phone number: $value");
-                print("🔍 DEBUG: Clean phone number: $cleanPhoneNumber");
+                print(" DEBUG: Original phone number: $value");
+                print("DEBUG: Clean phone number: $cleanPhoneNumber");
                 
-                // 使用tel scheme打開撥號器
+
                 final Uri phoneUri = Uri(scheme: 'tel', path: cleanPhoneNumber);
-                print("🔍 DEBUG: Phone URI: $phoneUri");
+                print(" DEBUG: Phone URI: $phoneUri");
                 
-                // 檢查是否可以啟動URL
+
                 final bool canLaunch = await canLaunchUrl(phoneUri);
-                print("🔍 DEBUG: Can launch URL: $canLaunch");
+                print(" DEBUG: Can launch URL: $canLaunch");
                 
                 if (canLaunch) {
                   await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
-                  print("🔍 DEBUG: Successfully launched dialer");
+                  print(" DEBUG: Successfully launched dialer");
                 } else {
-                  // 嘗試使用DIAL action作為備選方案
-                  print("🔍 DEBUG: Trying alternative dial method...");
+
+                  print(" DEBUG: Trying alternative dial method...");
                   final Uri dialUri = Uri(scheme: 'tel', path: cleanPhoneNumber);
                   try {
                     await launchUrl(dialUri);
@@ -660,7 +659,8 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('無法打開撥號器。請檢查權限設置。\n錯誤: $e'),
+                          content: Text('Unable to open dialer. Please check permission settings.\nError: $e'),
+
                           backgroundColor: Colors.red,
                           duration: const Duration(seconds: 4),
                         ),
@@ -669,12 +669,12 @@ class _MapLauncherExampleState extends State<MapLauncherExample> {
                   }
                 }
               } catch (e) {
-                // 處理異常
+
                 print("DEBUG: Exception occurred: $e");
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('撥號失敗: $e'),
+                      content: Text('call failed: $e'),
                       backgroundColor: Colors.red,
                       duration: const Duration(seconds: 4),
                     ),

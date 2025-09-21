@@ -17,12 +17,12 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   int _bottomIndex = 0;
-  String? _imageUrl; // Store latest avatar URL
+  String? _imageUrl;
 
   @override
   void initState() {
     super.initState();
-    _loadUserAvatar(); // Load avatar on initialization
+    _loadUserAvatar();
   }
 
   /// Load avatar from database
@@ -44,11 +44,9 @@ class _ProfilePageState extends State<ProfilePage> {
       final file = File(pickedFile.path);
 
       try {
-        // 1️ Upload and update DB
         final newImageUrl =
         await UserController().updateProfilePicture(widget.userId, file);
 
-        // 2 Update UI
         setState(() {
           _imageUrl = newImageUrl;
         });

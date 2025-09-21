@@ -57,7 +57,6 @@ class ListPageScheduleService {
     }
   }
 
-  // Get today's tasks
   Future<List<Map<String, dynamic>>?> getTodayTaskDeliverDetails({int? userId}) async {
     try {
       // Get today's date (YYYY-MM-DD format)
@@ -67,7 +66,6 @@ class ListPageScheduleService {
       print('Current date: ${now.year}-${now.month}-${now.day}');
       print('Today filter: $today, userId: $userId');
 
-      // First query all records to check what exists in the database
       final allQuery = _client
           .from('taskDeliver')
           .select('id, dueDate, user_id, status');
