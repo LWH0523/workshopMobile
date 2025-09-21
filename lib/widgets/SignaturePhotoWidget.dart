@@ -10,8 +10,8 @@ class SignaturePhotoWidget extends StatefulWidget {
   final void Function(Uint8List? signature)? onSignatureSaved;
   final void Function(Uint8List? photo)? onPhotoTaken;
   final VoidCallback? onReject;
-  final VoidCallback? onDataChanged; // 新增回调
-  final dynamic signatureData; // String 或 Uint8List
+  final VoidCallback? onDataChanged;
+  final dynamic signatureData;
   final dynamic imageData;
   final int? userId;
   final int? taskId;
@@ -45,8 +45,6 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
 
   Uint8List? _signatureData;
   Uint8List? _imageData;
-  // bool _isSigned = false;
-  // bool _imageTaken = false;
   String? _status;
   String? _reasonOfRejected;
 
@@ -54,29 +52,29 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
   void initState() {
     super.initState();
 
-    // 初始化 signature
+    // initialize signature
     if (widget.signatureData != null) {
       try {
         _signatureData = widget.signatureData is Uint8List
             ? widget.signatureData as Uint8List
             : base64Decode(widget.signatureData as String);
       } catch (e) {
-        print("❌ Signature decode error: $e");
+        print("Signature decode error: $e");
       }
     }
 
-    // 初始化 image
+    // intialize image
     if (widget.imageData != null) {
       try {
         _imageData = widget.imageData is Uint8List
             ? widget.imageData as Uint8List
             : base64Decode(widget.imageData as String);
       } catch (e) {
-        print("❌ Image decode error: $e");
+        print("Image decode error: $e");
       }
     }
 
-    // 初始化 status 和 reasonOfRejected
+    // initialize status and reasonOfRejected
     _status = widget.status;
     _reasonOfRejected = widget.reasonOfRejected;
   }
@@ -181,7 +179,7 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
       ),
     );
 
-    // DB 更新
+    // DB
     if (widget.userId != null && widget.taskId != null) {
       final signaturePhotoController = Signaturephotocontroller(
         SignaturePhotoDB(),
@@ -199,7 +197,6 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
       _status = 'enroute';
     });
 
-    // 通知父组件刷新数据
     if (widget.onDataChanged != null) {
       widget.onDataChanged!();
     }
@@ -234,7 +231,7 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
       setState(() {
         _imageData = bytes;
       });
-      print("📸 New photo taken, length = ${bytes.length}");
+      print("New photo taken, length = ${bytes.length}");
       if (widget.onPhotoTaken != null) {
         widget.onPhotoTaken!(bytes);
       }
@@ -259,7 +256,7 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
       ),
     );
 
-    // DB 更新
+    // DB
     if (widget.userId != null && widget.taskId != null) {
       final signaturePhotoController = Signaturephotocontroller(
         SignaturePhotoDB(),
@@ -276,7 +273,6 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
       _imageData = null;
     });
 
-    // 通知父组件刷新数据
     if (widget.onDataChanged != null) {
       widget.onDataChanged!();
     }
@@ -284,9 +280,9 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
 
   @override
   Widget build(BuildContext context) {
-    print("🔄 Rebuilding widget...");
+    print("Rebuilding widget...");
     print(
-      "👉 _signatureData = ${_signatureData?.length}, _imageData = ${_imageData?.length}",
+      "_signatureData = ${_signatureData?.length}, _imageData = ${_imageData?.length}",
     );
 
     return Column(
@@ -320,7 +316,7 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
           ),
         ),
 
-        // 按钮行
+        // button
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
@@ -451,7 +447,9 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
               SizedBox(width: 16),
               Flexible(
                 child: ElevatedButton(
-                  onPressed: (_status == 'rejected' || _signatureData != null) ? null : _saveSignature,
+                  onPressed: (_status == 'rejected' || _signatureData != null)
+                      ? null
+                      : _saveSignature,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFBFE1FF),
                   ),
@@ -464,7 +462,7 @@ class _SignaturePhotoWidgetState extends State<SignaturePhotoWidget> {
 
         SizedBox(height: 16),
 
-        // 图片区域
+        // image area
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: (_imageData != null)
