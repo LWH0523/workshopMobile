@@ -121,13 +121,7 @@ class _ProfilePageState extends State<ProfilePage> {
               );
             },
           ),
-          _ListTile(
-            icon: Icons.logout,
-            label: 'Logout',
-            onTap: () {
-              debugPrint('Logout userId: ${widget.userId}');
-            },
-          ),
+
           const Spacer(),
         ],
       ),
